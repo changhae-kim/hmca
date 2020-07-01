@@ -136,7 +136,7 @@ int main (int argc, char* argv[])
 /*
 	// Timing
 	t0 = clock();
-	for (i = 0; i < 1.5e+5; ++i)
+	for (i = 0; i < 2.0e+5; ++i)
 		hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
 	t1 = clock();
 	for (i = 0; i < 2.5e+4; ++i)
