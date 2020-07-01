@@ -11,6 +11,7 @@ int main (int argc, char* argv[])
 	clock_t t0, t1, t2;
 	int i, j, k, l;
 
+	// Reaction Network
 	enum species {Vc, Cc, Oc, Vb, Cb, Ob};
 	int n_species_0 = 3;
 	int n_species_1 = 3;
@@ -58,7 +59,6 @@ int main (int argc, char* argv[])
 	srand(seed);
 	printf("seed = %ld\n", seed);
 
-
 	// Random Rate Constants
 	printf("k =");
 	for (i = 0; i < n_react; ++i)
@@ -79,23 +79,26 @@ int main (int argc, char* argv[])
 	printf("\n");
 
 
-	// Jacobian
+	// Function and Jacobian
 	double h = 1e-8;
 	double aerr;
 	double dfdy[441];
 	double dydta[21];
 	double dydtb[21];
 
+	hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
 	hmca_pa_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
 
-	// Analytical Jacobian
+	printf("f =");
+	for (i = 0; i < nn_species; ++i)
+		printf(" %+.6f", dydta[i]);
+	printf("\n");
+
 	printf("J =\n");
 	for (i = 0; i < nn_species; ++i)
 	{
 		for(j = 0; j < nn_species; ++j)
-		{
 			printf(" %+.6f", dfdy[nn_species*i+j]);
-		}
 		printf("\n");
 	}
 
