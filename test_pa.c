@@ -45,6 +45,12 @@ int main (int argc, char* argv[])
 	double *rates = (double*)malloc(n_react*sizeof(double));
 	double *y = (double*)malloc(nn_species*sizeof(double));
 
+	double h = 1e-8;
+	double aerr;
+	double dfdy[441];
+	double dydta[21];
+	double dydtb[21];
+
 
 
 	// Random Number Generator
@@ -79,12 +85,6 @@ int main (int argc, char* argv[])
 
 
 	// Function and Jacobian
-	double h = 1e-8;
-	double aerr;
-	double dfdy[441];
-	double dydta[21];
-	double dydtb[21];
-
 	hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
 	hmca_pa_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
 
