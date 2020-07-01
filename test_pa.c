@@ -1,7 +1,5 @@
 #include "hmca.h"
 
-#include <gsl/gsl_odeiv2.h>
-
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
