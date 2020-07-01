@@ -68,7 +68,6 @@ int main (int argc, char* argv[])
 	}
 	printf("\n");
 
-
 	// Random Moments
 	printf("y =");
 	for (i = 0; i < nn_species; ++i)
