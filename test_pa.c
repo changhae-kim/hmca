@@ -76,10 +76,10 @@ int main (int argc, char* argv[])
 
 	// Random Moments
 	printf("y =");
-	for (i = 0; i < nn_species; ++i)
+	for (i = 0; i < n_species; ++i) for (j = i; j < n_species; ++j)
 	{
-		y[i] = (rand()%p_zero > 0) * (double)(rand()%p_yvar+1)/p_yvar;
-		printf(" %.2f", y[i]);
+		y[hmca_sym_id(i, j, n_species)] = (rand()%p_zero > 0) * (double)(rand()%p_yvar+1)/p_yvar;
+		printf(" %.2f", y[hmca_sym_id(i, j, n_species)]);
 	}
 	printf("\n");
 
@@ -136,10 +136,10 @@ int main (int argc, char* argv[])
 /*
 	// Timing
 	t0 = clock();
-	for (i = 0; i < 2.0e+5; ++i)
+	for (i = 0; i < 2.1e+5; ++i)
 		hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
 	t1 = clock();
-	for (i = 0; i < 2.5e+4; ++i)
+	for (i = 0; i < 2.6e+4; ++i)
 		hmca_pa_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
 	t2 = clock();
 	printf("%f\n", (double)(t1-t0)/CLOCKS_PER_SEC);

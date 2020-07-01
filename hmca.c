@@ -1166,13 +1166,14 @@ void hmca_spa_func (
 		const int *pairs, const int *reactions, const double *rates, hmca_nn nn)
 {
 	int n_species = n_species_0+n_species_1;
+	int n_dof = n_species+n_pairs;
 
 	int i, j, k, l, p, q;
 	int r0, r1, p0, p1, s0, s1;
 	int indices[3];
 	double ky;
 
-	memset(dydt, 0, (n_species+n_pairs)*sizeof(double));
+	memset(dydt, 0, n_dof*sizeof(double));
 
 	indices[2] = -1;
 
@@ -1236,7 +1237,7 @@ void hmca_spa_func (
 		{
 			r0 = reactions[2*j+0];
 			p0 = reactions[2*j+1];
-			dydt[n_species+i] -= ((r0 == s0) + (r0 == s1)) * rates[j] * y[n_species+i];
+			dydt[n_species+i] -= ((s0 == r0) + (s1 == r0)) * rates[j] * y[n_species+i];
 			for (k = 0; k < 2; ++k) if (pairs[2*i+k] == p0)
 			{
 				for (l = 0; l < n_pairs; ++l)
@@ -1258,20 +1259,80 @@ void hmca_spa_func (
 			p0 = reactions[2*n_unimol+4*j+2];
 			p1 = reactions[2*n_unimol+4*j+3];
 
-			dydt[n_species+i] -= ((r0 == s0 && r1 == s1) + (r0 == s1 && r1 == s0)) * rates[n_unimol+j] * y[n_species+i];
+			dydt[n_species+i] -= ((s0 == r0 && s1 == r1) + (s0 == r1 && s1 == r0)) * rates[n_unimol+j] * y[n_species+i];
 			for (k = 0; k < n_pairs; ++k)
 			{
 				if ((r0 == pairs[2*k+0] && r1 == pairs[2*k+1]) || (r0 == pairs[2*k+1] && r1 == pairs[2*k+0]))
 					break;
 			}
 			if (k < n_pairs)
-				dydt[n_species+i] += ((p0 == s0 && p1 == s1) + (p0 == s1 && p1 == s0)) * rates[n_unimol+j] * y[n_species+k];
+				dydt[n_species+i] += ((s0 == p0 && s1 == p1) + (s0 == p1 && s1 == p0)) * rates[n_unimol+j] * y[n_species+k];
 			else
-				dydt[n_species+i] += ((p0 == s0 && p1 == s1) + (p0 == s1 && p1 == s0)) * rates[n_unimol+j] * y[r0] * y[r1];
+				dydt[n_species+i] += ((s0 == p0 && s1 == p1) + (s0 == p1 && s1 == p0)) * rates[n_unimol+j] * y[r0] * y[r1];
 
 			for (k = 0; k < 2; ++k) for (l = 0; l < 2; ++l)
 			{
+				if (pairs[2*i+k] == reactions[2*n_unimol+4*j+l])
+				{
+					indices[0] = reactions[2*n_unimol+4*j+(l+1)%2];
+					indices[1] = reactions[2*n_unimol+4*j+l];
+					indices[2] = pairs[2*i+(k+1)%2];
+					for (p = 0; p < n_pairs; ++p)
+					{
+						if ((indices[0] == pairs[2*p+0] && indices[1] == pairs[2*p+1]) || (indices[0] == pairs[2*p+1] && indices[1] == pairs[2*p+0]))
+							break;
+					}
+					for (q = 0; q < n_pairs; ++q)
+					{
+						if ((indices[1] == pairs[2*q+0] && indices[2] == pairs[2*q+1]) || (indices[1] == pairs[2*q+1] && indices[2] == pairs[2*q+0]))
+							break;
+					}
+					if (p < n_pairs)
+					{
+						if (q < n_pairs)
+							dydt[n_species+i] -= (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[n_species+p] * y[n_species+q] / (y[indices[1]] + (y[indices[1]] == 0.0));
+						else
+							dydt[n_species+i] -= (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[n_species+p] * y[indices[2]];
+					}
+					else
+					{
+						if (q < n_pairs)
+							dydt[n_species+i] -= (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[indices[0]] * y[n_species+q];
+						else
+							dydt[n_species+i] -= (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[indices[0]] * y[indices[1]] * y[indices[2]];
+					}
+				}
 
+				if (pairs[2*i+k] == reactions[2*n_unimol+4*j+2+l])
+				{
+					indices[0] = reactions[2*n_unimol+4*j+(l+1)%2];
+					indices[1] = reactions[2*n_unimol+4*j+l];
+					indices[2] = pairs[2*i+(k+1)%2];
+					for (p = 0; p < n_pairs; ++p)
+					{
+						if ((indices[0] == pairs[2*p+0] && indices[1] == pairs[2*p+1]) || (indices[0] == pairs[2*p+1] && indices[1] == pairs[2*p+0]))
+							break;
+					}
+					for (q = 0; q < n_pairs; ++q)
+					{
+						if ((indices[1] == pairs[2*q+0] && indices[2] == pairs[2*q+1]) || (indices[1] == pairs[2*q+1] && indices[2] == pairs[2*q+0]))
+							break;
+					}
+					if (p < n_pairs)
+					{
+						if (q < n_pairs)
+							dydt[n_species+i] += (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[n_species+p] * y[n_species+q] / (y[indices[1]] + (y[indices[1]] == 0.0));
+						else
+							dydt[n_species+i] += (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[n_species+p] * y[indices[2]];
+					}
+					else
+					{
+						if (q < n_pairs)
+							dydt[n_species+i] += (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[indices[0]] * y[n_species+q];
+						else
+							dydt[n_species+i] += (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[indices[0]] * y[indices[1]] * y[indices[2]];
+					}
+				}
 			}
 		}
 	}
@@ -1285,6 +1346,242 @@ void hmca_spa_jac (
 		int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
 		const int *pairs, const int *reactions, const double *rates, hmca_nn nn)
 {
+	int n_species = n_species_0+n_species_1;
+	int n_dof = n_species+n_pairs;
+
+	int i, j, k, l, p, q;
+	int r0, r1, p0, p1, s0, s1;
+	int n, indices[3];
+	double ky;
+
+	memset(dfdy, 0, n_dof*n_dof*sizeof(double));
+
+	indices[2] = -1;
+
+	for (i = 0; i < n_unimol; ++i)
+	{
+		r0 = reactions[2*i+0];
+		p0 = reactions[2*i+1];
+		// ky = rates[i] * y[r0];
+		dfdy[n_dof*r0+r0] -= rates[i];
+		dfdy[n_dof*p0+r0] += rates[i];
+	}
+
+	for (i = 0; i < n_bimol; ++i)
+	{
+		r0 = reactions[2*n_unimol+4*i+0];
+		r1 = reactions[2*n_unimol+4*i+1];
+		p0 = reactions[2*n_unimol+4*i+2];
+		p1 = reactions[2*n_unimol+4*i+3];
+
+		for (j = 0; j < n_pairs; ++j)
+		{
+			if ((r0 == pairs[2*j+0] && r1 == pairs[2*j+1]) || (r0 == pairs[2*j+1] && r1 == pairs[2*j+0]))
+				break;
+		}
+		if (j < n_pairs)
+		{
+			indices[0] = r0;
+			indices[1] = r1;
+			// ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * y[n_species+j];
+			ky = (*nn) (indices, n_species_0) * rates[n_unimol+i];
+			dfdy[n_dof*r0+(n_species+j)] -= ky;
+			dfdy[n_dof*p0+(n_species+j)] += ky;
+			
+			indices[0] = r1;
+			indices[1] = r0;
+			// ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * y[n_species+j];
+			ky = (*nn) (indices, n_species_0) * rates[n_unimol+i];
+			dfdy[n_dof*r1+(n_species+j)] -= ky;
+			dfdy[n_dof*p1+(n_species+j)] += ky;
+		}
+		else
+		{
+			indices[0] = r0;
+			indices[1] = r1;
+			// ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * y[r0] * y[r1];
+			ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * y[r1];
+			dfdy[n_dof*r0+r0] -= ky;
+			dfdy[n_dof*p0+r0] += ky;
+			ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * y[r0];
+			dfdy[n_dof*r0+r1] -= ky;
+			dfdy[n_dof*p0+r1] += ky;
+			
+			indices[0] = r1;
+			indices[1] = r0;
+			// ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * y[r0] * y[r1];
+			ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * y[r1];
+			dfdy[n_dof*r1+r0] -= ky;
+			dfdy[n_dof*p1+r0] += ky;
+			ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * y[r0];
+			dfdy[n_dof*r1+r1] -= ky;
+			dfdy[n_dof*p1+r1] += ky;
+		}
+	}
+
+	for (i = 0; i < n_pairs; ++i)
+	{
+		s0 = pairs[2*i+0];
+		s1 = pairs[2*i+1];
+
+		for (j = 0; j < n_unimol; ++j)
+		{
+			r0 = reactions[2*j+0];
+			p0 = reactions[2*j+1];
+			// dydt[n_species+i] -= ((s0 == r0) + (s1 == r0)) * rates[j] * y[n_species+i];
+			dfdy[n_dof*(n_species+i)+(n_species+i)] -= ((s0 == r0) + (s1 == r0)) * rates[j];
+			for (k = 0; k < 2; ++k) if (pairs[2*i+k] == p0)
+			{
+				for (l = 0; l < n_pairs; ++l)
+				{
+					if ((r0 == pairs[2*l+0] && pairs[2*i+(k+1)%2] == pairs[2*l+1]) || (r0 == pairs[2*l+1] && pairs[2*i+(k+1)%2] == pairs[2*l+0]))
+						break;
+				}
+				if (l < n_pairs)
+				{
+					// dydt[n_species+i] += rates[j] * y[n_species+l];
+					dfdy[n_dof*(n_species+i)+(n_species+l)] += rates[j];
+				}
+				else
+				{
+					// dydt[n_species+i] += rates[j] * y[r0] * y[pairs[2*i+(k+1)%2]];
+					dfdy[n_dof*(n_species+i)+r0] += rates[j] * y[pairs[2*i+(k+1)%2]];
+					dfdy[n_dof*(n_species+i)+pairs[2*i+(k+1)%2]] += rates[j] * y[r0];
+				}
+			}
+		}
+
+		for (j = 0; j < n_bimol; ++j)
+		{
+			r0 = reactions[2*n_unimol+4*j+0];
+			r1 = reactions[2*n_unimol+4*j+1];
+			p0 = reactions[2*n_unimol+4*j+2];
+			p1 = reactions[2*n_unimol+4*j+3];
+
+			// dydt[n_species+i] -= ((s0 == r0 && s1 == r1) + (s0 == r1 && s1 == r0)) * rates[n_unimol+j] * y[n_species+i];
+			dfdy[n_dof*(n_species+i)+(n_species+i)] -= ((s0 == r0 && s1 == r1) + (s0 == r1 && s1 == r0)) * rates[n_unimol+j];
+			for (k = 0; k < n_pairs; ++k)
+			{
+				if ((r0 == pairs[2*k+0] && r1 == pairs[2*k+1]) || (r0 == pairs[2*k+1] && r1 == pairs[2*k+0]))
+					break;
+			}
+			if (k < n_pairs)
+			{
+				// dydt[n_species+i] += ((s0 == p0 && s1 == p1) + (s0 == p1 && s1 == p0)) * rates[n_unimol+j] * y[n_species+k];
+				dfdy[n_dof*(n_species+i)+(n_species+k)] += ((s0 == p0 && s1 == p1) + (s0 == p1 && s1 == p0)) * rates[n_unimol+j];
+			}
+			else
+			{
+				// dydt[n_species+i] += ((s0 == p0 && s1 == p1) + (s0 == p1 && s1 == p0)) * rates[n_unimol+j] * y[r0] * y[r1];
+				dfdy[n_dof*(n_species+i)+r0] += ((s0 == p0 && s1 == p1) + (s0 == p1 && s1 == p0)) * rates[n_unimol+j] * y[r1];
+				dfdy[n_dof*(n_species+i)+r1] += ((s0 == p0 && s1 == p1) + (s0 == p1 && s1 == p0)) * rates[n_unimol+j] * y[r0];
+			}
+
+			for (k = 0; k < 2; ++k) for (l = 0; l < 2; ++l)
+			{
+				if (pairs[2*i+k] == reactions[2*n_unimol+4*j+l])
+				{
+					indices[0] = reactions[2*n_unimol+4*j+(l+1)%2];
+					indices[1] = reactions[2*n_unimol+4*j+l];
+					indices[2] = pairs[2*i+(k+1)%2];
+					n = (*nn) (indices, n_species_0);
+					for (p = 0; p < n_pairs; ++p)
+					{
+						if ((indices[0] == pairs[2*p+0] && indices[1] == pairs[2*p+1]) || (indices[0] == pairs[2*p+1] && indices[1] == pairs[2*p+0]))
+							break;
+					}
+					for (q = 0; q < n_pairs; ++q)
+					{
+						if ((indices[1] == pairs[2*q+0] && indices[2] == pairs[2*q+1]) || (indices[1] == pairs[2*q+1] && indices[2] == pairs[2*q+0]))
+							break;
+					}
+					if (p < n_pairs)
+					{
+						if (q < n_pairs)
+						{
+							// dydt[n_species+i] -= (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[n_species+p] * y[n_species+q] / (y[indices[1]] + (y[indices[1]] == 0.0));
+							dfdy[n_dof*(n_species+i)+(n_species+p)] -= n * rates[n_unimol+j] * y[n_species+q] / (y[indices[1]] + (y[indices[1]] == 0.0));
+							dfdy[n_dof*(n_species+i)+(n_species+q)] -= n * rates[n_unimol+j] * y[n_species+p] / (y[indices[1]] + (y[indices[1]] == 0.0));
+							dfdy[n_dof*(n_species+i)+indices[1]] -= - n * rates[n_unimol+j] * y[n_species+p] * y[n_species+q] / (y[indices[1]] * y[indices[1]] + (y[indices[1]] == 0.0));
+						}
+						else
+						{
+							// dydt[n_species+i] -= (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[n_species+p] * y[indices[2]];
+							dfdy[n_dof*(n_species+i)+(n_species+p)] -= n * rates[n_unimol+j] * y[indices[2]];
+							dfdy[n_dof*(n_species+i)+indices[2]] -= n * rates[n_unimol+j] * y[n_species+p];
+						}
+					}
+					else
+					{
+						if (q < n_pairs)
+						{
+							// dydt[n_species+i] -= (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[indices[0]] * y[n_species+q];
+							dfdy[n_dof*(n_species+i)+indices[0]] -= n * rates[n_unimol+j] * y[n_species+q];
+							dfdy[n_dof*(n_species+i)+(n_species+q)] -= n * rates[n_unimol+j] * y[indices[0]];
+						}
+						else
+						{
+							// dydt[n_species+i] -= (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[indices[0]] * y[indices[1]] * y[indices[2]];
+							dfdy[n_dof*(n_species+i)+indices[0]] -= n * rates[n_unimol+j] * y[indices[1]] * y[indices[2]];
+							dfdy[n_dof*(n_species+i)+indices[1]] -= n * rates[n_unimol+j] * y[indices[0]] * y[indices[2]];
+							dfdy[n_dof*(n_species+i)+indices[2]] -= n * rates[n_unimol+j] * y[indices[0]] * y[indices[1]];
+						}
+					}
+				}
+
+				if (pairs[2*i+k] == reactions[2*n_unimol+4*j+2+l])
+				{
+					indices[0] = reactions[2*n_unimol+4*j+(l+1)%2];
+					indices[1] = reactions[2*n_unimol+4*j+l];
+					indices[2] = pairs[2*i+(k+1)%2];
+					n = (*nn) (indices, n_species_0);
+					for (p = 0; p < n_pairs; ++p)
+					{
+						if ((indices[0] == pairs[2*p+0] && indices[1] == pairs[2*p+1]) || (indices[0] == pairs[2*p+1] && indices[1] == pairs[2*p+0]))
+							break;
+					}
+					for (q = 0; q < n_pairs; ++q)
+					{
+						if ((indices[1] == pairs[2*q+0] && indices[2] == pairs[2*q+1]) || (indices[1] == pairs[2*q+1] && indices[2] == pairs[2*q+0]))
+							break;
+					}
+					if (p < n_pairs)
+					{
+						if (q < n_pairs)
+						{
+							// dydt[n_species+i] += (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[n_species+p] * y[n_species+q] / (y[indices[1]] + (y[indices[1]] == 0.0));
+							dfdy[n_dof*(n_species+i)+(n_species+p)] += n * rates[n_unimol+j] * y[n_species+q] / (y[indices[1]] + (y[indices[1]] == 0.0));
+							dfdy[n_dof*(n_species+i)+(n_species+q)] += n * rates[n_unimol+j] * y[n_species+p] / (y[indices[1]] + (y[indices[1]] == 0.0));
+							dfdy[n_dof*(n_species+i)+indices[1]] += - n * rates[n_unimol+j] * y[n_species+p] * y[n_species+q] / (y[indices[1]] * y[indices[1]] + (y[indices[1]] == 0.0));
+						}
+						else
+						{
+							// dydt[n_species+i] += (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[n_species+p] * y[indices[2]];
+							dfdy[n_dof*(n_species+i)+(n_species+p)] += n * rates[n_unimol+j] * y[indices[2]];
+							dfdy[n_dof*(n_species+i)+indices[2]] += n * rates[n_unimol+j] * y[n_species+p];
+						}
+					}
+					else
+					{
+						if (q < n_pairs)
+						{
+							// dydt[n_species+i] += (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[indices[0]] * y[n_species+q];
+							dfdy[n_dof*(n_species+i)+indices[0]] += n * rates[n_unimol+j] * y[n_species+q];
+							dfdy[n_dof*(n_species+i)+(n_species+q)] += n * rates[n_unimol+j] * y[indices[0]];
+						}
+						else
+						{
+							// dydt[n_species+i] += (*nn) (indices, n_species_0) * rates[n_unimol+j] * y[indices[0]] * y[indices[1]] * y[indices[2]];
+							dfdy[n_dof*(n_species+i)+indices[0]] += n * rates[n_unimol+j] * y[indices[1]] * y[indices[2]];
+							dfdy[n_dof*(n_species+i)+indices[1]] += n * rates[n_unimol+j] * y[indices[0]] * y[indices[2]];
+							dfdy[n_dof*(n_species+i)+indices[2]] += n * rates[n_unimol+j] * y[indices[0]] * y[indices[1]];
+						}
+					}
+				}
+			}
+		} // end for (j)
+	}
+
 	return;
 }
 
