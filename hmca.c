@@ -1155,9 +1155,9 @@ void hmca_mlmc_jac (
 
 // Select Pair Approximation
 
-extern inline double hmca_spa_nn_1x1 (const int *indices, int n_species_0)
+extern inline double hmca_spa_nn_1x1 (const int *indices, int n_species_0);
 
-extern inline double hmca_spa_nn_2x1 (const int *indices, int n_species_0)
+extern inline double hmca_spa_nn_2x1 (const int *indices, int n_species_0);
 
 void hmca_spa_func (
 		const double *y,
