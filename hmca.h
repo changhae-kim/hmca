@@ -103,6 +103,12 @@ void hmca_pa_jac (
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates, hmca_nn nn);
 
+void hmca_pa_jac_k (
+		const double *y,
+		double *dfdy,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+		const int *reactions, const double *rates, hmca_nn nn);
+
 
 // Half Heterogeneous Pair Approximation
 
@@ -128,6 +134,12 @@ void hmca_hhpa_jac (
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
 		const int *reactions, const double *rates, const double *weights, hmca_nn nn);
 
+void hmca_hhpa_jac_k (
+		const double *y,
+		double *dfdy,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn);
+
 
 // Machine Learning Moment Closure
 
@@ -139,6 +151,13 @@ void hmca_mlmc_func (
 		mlmc_closure closure, mlmc_closure deriv, void *model);
 
 void hmca_mlmc_jac (
+		const double *y,
+		double *dfdy,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+		const int *reactions, const double *rates,
+		mlmc_closure closure, mlmc_closure deriv, void *model);
+
+void hmca_mlmc_jac_z (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,

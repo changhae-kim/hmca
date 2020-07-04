@@ -47,9 +47,10 @@ int main (int argc, char* argv[])
 
 	double h = 1e-8;
 	double aerr;
-	double dfdy[441];
-	double dydta[21];
-	double dydtb[21];
+	double *dfdy = (double*)malloc(nn_species*nn_species*sizeof(double));
+	double *dydta = (double*)malloc(nn_species*sizeof(double));
+	double *dydtb = (double*)malloc(nn_species*sizeof(double));
+	double *dfdk = (double*)malloc(nn_species*n_react*sizeof(double));
 
 
 
@@ -133,6 +134,25 @@ int main (int argc, char* argv[])
 		printf("\n");
 	}
 
+	// Jacobian w.r.t. Rate Constants
+	hmca_pa_jac_k(y, dfdk, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+
+	printf("Jk - Jkn =\n"); 
+	for (i = 0; i < n_react; ++i)
+	{
+		rates[i] += h;
+		hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+		rates[i] -= 2.0*h;
+		hmca_pa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+		rates[i] += h;
+		for(j = 0; j < nn_species; ++j)
+		{
+			aerr = (dydta[j]-dydtb[j])/(2.0*h) - dfdk[n_react*j+i];
+			printf(" %+.6f", aerr);
+		}
+		printf("\n");
+	}
+
 /*
 	// Timing
 	t0 = clock();
@@ -149,6 +169,11 @@ int main (int argc, char* argv[])
 
 	free(rates);
 	free(y);
+
+	free(dfdy);
+	free(dydta);
+	free(dydtb);
+	free(dfdk);
 
 	return 0;
 }
