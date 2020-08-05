@@ -53,7 +53,6 @@ int main (int argc, char* argv[])
 	double *dfdk = (double*)malloc(nn_species*n_react*sizeof(double));
 
 
-
 	// Random Number Generator
 	unsigned long seed;
 	int p_kvar = 10;
@@ -67,21 +66,21 @@ int main (int argc, char* argv[])
 	printf("seed = %ld\n", seed);
 
 	// Random Rate Constants
+	for (i = 0; i < n_react; ++i)
+		rates[i] = (double)(rand()%p_kvar+1)/p_kvar;
+
 	printf("k =");
 	for (i = 0; i < n_react; ++i)
-	{
-		rates[i] = (double)(rand()%p_kvar+1)/p_kvar;
 		printf(" %.1f", rates[i]);
-	}
 	printf("\n");
 
 	// Random Moments
-	printf("y =");
 	for (i = 0; i < n_species; ++i) for (j = i; j < n_species; ++j)
-	{
 		y[hmca_sym_id(i, j, n_species)] = (rand()%p_zero > 0) * (double)(rand()%p_yvar+1)/p_yvar;
-		printf(" %.2f", y[hmca_sym_id(i, j, n_species)]);
-	}
+
+	printf("y =");
+	for (i = 0; i < nn_species; ++i)
+		printf(" %.2f", y[i]);
 	printf("\n");
 
 
@@ -103,7 +102,7 @@ int main (int argc, char* argv[])
 	}
 
 	// Compare to Numerical Jacobian
-	printf("J - Jn =\n"); 
+	printf("J_n - J =\n"); 
 	for (i = 0; i < nn_species; ++i)
 	{
 		if (y[i] > 0.0)
@@ -134,10 +133,10 @@ int main (int argc, char* argv[])
 		printf("\n");
 	}
 
-	// Jacobian w.r.t. Rate Constants
-	hmca_pa_jac_k(y, dfdk, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+	// Derivative w.r.t. Rate Constants
+	hmca_pa_deriv_k(y, dfdk, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
 
-	printf("Jk - Jkn =\n"); 
+	printf("dfdk_n - dfdk =\n"); 
 	for (i = 0; i < n_react; ++i)
 	{
 		rates[i] += h;
@@ -153,8 +152,7 @@ int main (int argc, char* argv[])
 		printf("\n");
 	}
 
-/*
-	// Timing
+/*	// Timing
 	t0 = clock();
 	for (i = 0; i < 2.1e+5; ++i)
 		hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
@@ -163,8 +161,7 @@ int main (int argc, char* argv[])
 		hmca_pa_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
 	t2 = clock();
 	printf("%f\n", (double)(t1-t0)/CLOCKS_PER_SEC);
-	printf("%f\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-*/
+	printf("%f\n", (double)(t2-t1)/CLOCKS_PER_SEC);	*/
 
 
 	free(rates);

@@ -5,28 +5,24 @@
 
 extern inline int hmca_sym_id (int i, int j, int n);
 
-void hmca_lognorm_1d (
+void hmca_lognorm (
 		const double *logk0, const double *dlogk,
 		double *rates, double *weights,
-		int n_unimol, int n_bimol, int mesh, double bound)
+		int n_unimol, int n_bimol, int mesh, double bound
+		)
 {
 	int n_react = n_unimol+n_bimol;
 
 	int i, j;
 	double x, dx;
-	double limit, norm;
-
-	limit = 0.0;
-	for (i = 0; i < n_react; ++i) if (limit < fabs(dlogk[i]))
-		limit = fabs(dlogk[i]);
-	limit += bound;
+	double norm;
 
 	/*
 	// midpoint rule
-	dx = 2.0 * limit / (mesh + (mesh == 0));
+	dx = 2.0 * bound / (mesh + (mesh == 0));
 	for (i = 0; i < mesh; ++i)
 	{
-		x = (i+0.5)*dx-limit;
+		x = (i+0.5)*dx-bound;
 		for (j = 0; j < n_react; ++j)
 			rates[n_react*i+j] = exp(logk0[j]+x*dlogk[j]);
 		weights[i] = exp(-0.5*x*x)*dx;
@@ -34,10 +30,10 @@ void hmca_lognorm_1d (
 	*/
 
 	// trapezoid rule
-	dx = 2.0 * limit / (mesh-1 + (mesh == 1));
+	dx = 2.0 * bound / (mesh-1 + (mesh == 1));
 	for (i = 0; i < mesh; ++i)
 	{
-		x = i*dx-limit;
+		x = i*dx-bound;
 		for (j = 0; j < n_react; ++j)
 			rates[n_react*i+j] = exp(logk0[j]+x*dlogk[j]);
 		weights[i] = ((i > 0 && i+1 < mesh) ? (2.0) : (1.0)) * exp(-0.5*x*x) * dx;
@@ -52,10 +48,51 @@ void hmca_lognorm_1d (
 	return;
 }
 
-void hmca_logexp_1d (
+void hmca_lognorm_deriv (
+		const double *logk0, const double *dlogk,
+		double *dkdlogk0, double *dkddlogk,
+		int n_unimol, int n_bimol, int mesh, double bound
+		)
+{
+	int n_react = n_unimol+n_bimol;
+
+	int i, j;
+	double x, dx;
+
+	/*
+	// midpoint rule
+	dx = 2.0 * bound / (mesh + (mesh == 0));
+	for (i = 0; i < mesh; ++i)
+	{
+		x = (i+0.5)*dx-bound;
+		for (j = 0; j < n_react; ++j)
+		{
+			dkdlogk0[n_react*i+j] = exp(logk0[j]+x*dlogk[j]);
+			dkddlogk[n_react*i+j] = x*exp(logk0[j]+x*dlogk[j]);
+		}
+	}
+	*/
+
+	//  trapezoid rule
+	dx = 2.0 * bound / (mesh-1 + (mesh == 1));
+	for (i = 0; i < mesh; ++i)
+	{
+		x = i*dx-bound;
+		for (j = 0; j < n_react; ++j)
+		{
+			dkdlogk0[n_react*i+j] = exp(logk0[j]+x*dlogk[j]);
+			dkddlogk[n_react*i+j] = x*exp(logk0[j]+x*dlogk[j]);
+		}
+	}
+
+	return;
+}
+
+void hmca_logexp (
 		const double *logk0, const double *dlogk,
 		double *rates, double *weights,
-		int n_unimol, int n_bimol, int mesh, double bound)
+		int n_unimol, int n_bimol, int mesh, double bound
+		)
 {
 	int n_react = n_unimol+n_bimol;
 
@@ -92,7 +129,47 @@ void hmca_logexp_1d (
 		weights[i] /= norm;
 
 	return;
+}
 
+void hmca_logexp_deriv (
+		const double *logk0, const double *dlogk,
+		double *dkdlogk0, double *dkddlogk,
+		int n_unimol, int n_bimol, int mesh, double bound
+		)
+{
+	int n_react = n_unimol+n_bimol;
+
+	int i, j;
+	double x, dx;
+	double norm;
+
+	/*
+	// left rule
+	dx = bound / (mesh + (mesh == 0));
+	for (i = 0; i < mesh; ++i)
+	{
+		x = i*dx;
+		for (j = 0; j < n_react; ++j)
+		{
+			dkdlogk0[n_react*i+j] = exp(logk0[j]-x*dlogk[j]);
+			dkddlogk[n_react*i+j] = -x*exp(logk0[j]-x*dlogk[j]);
+		}
+	}
+	*/
+
+	// Simpson's rule
+	dx = bound / (mesh-1 + (mesh == 1));
+	for (i = 0; i < mesh; ++i)
+	{
+		x = i*dx;
+		for (j = 0; j < n_react; ++j)
+		{
+			dkdlogk0[n_react*i+j] = exp(logk0[j]-x*dlogk[j]);
+			dkddlogk[n_react*i+j] = -x*exp(logk0[j]-x*dlogk[j]);
+		}
+	}
+
+	return;
 }
 
 
@@ -106,7 +183,8 @@ void hmca_mf_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn)
+		const int *reactions, const double *rates, hmca_nn nn
+		)
 {
 	int i;
 	int r0, r1, p0, p1;
@@ -151,7 +229,8 @@ void hmca_mf_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn)
+		const int *reactions, const double *rates, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 
@@ -196,6 +275,56 @@ void hmca_mf_jac (
 		dfdy[n_species*r1+r1] -= ky;
 		dfdy[n_species*p1+r1] += ky;
 	}
+
+	return;
+}
+
+void hmca_mf_deriv_k (
+		const double *y,
+		double *dfdk,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+		const int *reactions, const double *rates, hmca_nn nn
+		)
+{
+	int n_react = n_unimol+n_bimol;
+
+	int i;
+	int r0, r1, p0, p1;
+	int indices[2];
+	double ky;
+
+	for (i = 0; i < n_unimol; ++i)
+	{
+		r0 = reactions[2*i+0];
+		p0 = reactions[2*i+1];
+		// ky = rates[i] * y[r0];
+		dfdk[n_react*r0+i] -= y[r0];
+		dfdk[n_react*p0+i] += y[r0];
+	}
+
+	for (i = 0; i < n_bimol; ++i)
+	{
+		r0 = reactions[2*n_unimol+4*i+0];
+		r1 = reactions[2*n_unimol+4*i+1];
+		p0 = reactions[2*n_unimol+4*i+2];
+		p1 = reactions[2*n_unimol+4*i+3];
+
+		indices[0] = r0;
+		indices[1] = r1;
+		// ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * y[r0] * y[r1];
+		ky = (*nn) (indices, n_species_0) * y[r0] * y[r1];
+		dfdk[n_react*r0+n_unimol+i] -= ky;
+		dfdk[n_react*p0+n_unimol+i] += ky;
+
+		indices[0] = r1;
+		indices[1] = r0;
+		// ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * y[r0] * y[r1];
+		ky = (*nn) (indices, n_species_0) * y[r0] * y[r1];
+		dfdk[n_react*r1+n_unimol+i] -= ky;
+		dfdk[n_react*p1+n_unimol+i] += ky;
+	}
+
+	return;
 }
 
 
@@ -203,9 +332,10 @@ void hmca_mf_jac (
 
 void hmca_hmf_average (
 		const double *y,
-		double *average,
+		double *yy, double *kyy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights)
+		const int *reactions, const double *rates, const double *weights
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int n_react = n_unimol+n_bimol;
@@ -214,7 +344,8 @@ void hmca_hmf_average (
 	int r0;
 	const double *kj, *yj;
 
-	memset(average, 0, (n_species+n_bimol)*sizeof(double));
+	memset(yy, 0, n_species*sizeof(double));
+	memset(kyy, 0, n_bimol*sizeof(double));
 
 	for (j = 0; j < mesh; ++j)
 	{
@@ -223,13 +354,13 @@ void hmca_hmf_average (
 
 		for (k = 0; k < n_species; ++k)
 		{
-			average[k] += yj[k] * weights[j];
+			yy[k] += yj[k] * weights[j];
 		}
 
 		for (k = 0; k < n_bimol; ++k)
 		{
 			r0 = reactions[2*n_unimol+4*k+0];
-			average[n_species+k] += kj[n_unimol+k] * yj[r0] * weights[j];
+			kyy[k] += kj[n_unimol+k] * yj[r0] * weights[j];
 		}
 	}
 
@@ -240,15 +371,17 @@ void hmca_hmf_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights, hmca_nn nn)
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int n_react = n_unimol+n_bimol;
 
-	double *average = (double*)malloc((n_species+n_bimol)*sizeof(double));
+	double *yy = (double*)malloc(n_species*sizeof(double));
+	double *kyy = (double*)malloc(n_bimol*sizeof(double));
 	hmca_hmf_average(
 			y,
-			average,
+			yy, kyy,
 			n_species_0, n_species_1, n_unimol, n_bimol, mesh,
 			reactions, rates, weights);
 
@@ -283,19 +416,20 @@ void hmca_hmf_func (
 
 			indices[0] = r0;
 			indices[1] = r1;
-			ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * yi[r0] * average[r1];
+			ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * yi[r0] * yy[r1];
 			fi[r0] -= ky;
 			fi[p0] += ky;
 
 			indices[0] = r1;
 			indices[1] = r0;
-			ky = (*nn) (indices, n_species_0) * average[n_species+k] * yi[r1];
+			ky = (*nn) (indices, n_species_0) * kyy[k] * yi[r1];
 			fi[r1] -= ky;
 			fi[p1] += ky;
 		}
 	}
 
-	free(average);
+	free(yy);
+	free(kyy);
 
 	return;
 }
@@ -304,15 +438,17 @@ void hmca_hmf_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights, hmca_nn nn)
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int n_react = n_unimol+n_bimol;
 
-	double *average = (double*)malloc((n_species+n_bimol)*sizeof(double));
+	double *yy = (double*)malloc(n_species*sizeof(double));
+	double *kyy = (double*)malloc(n_bimol*sizeof(double));
 	hmca_hmf_average(
 			y,
-			average,
+			yy, kyy,
 			n_species_0, n_species_1, n_unimol, n_bimol, mesh,
 			reactions, rates, weights);
 
@@ -354,15 +490,15 @@ void hmca_hmf_jac (
 
 				indices[0] = r0;
 				indices[1] = r1;
-				// ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * yi[r0] * average[r1];
-				ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * average[r1];
+				// ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * yi[r0] * yy[r1];
+				ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * yy[r1];
 				dfij[r0][r0] -= ky;
 				dfij[p0][r0] += ky;
 
 				indices[0] = r1;
 				indices[1] = r0;
-				// ky = (*nn) (indices, n_species_0) * average[n_species+k] * yi[r1];
-				ky = (*nn) (indices, n_species_0) * average[n_species+k];
+				// ky = (*nn) (indices, n_species_0) * kyy[k] * yi[r1];
+				ky = (*nn) (indices, n_species_0) * kyy[k];
 				dfij[r1][r1] -= ky;
 				dfij[p1][r1] += ky;
 			}
@@ -377,14 +513,14 @@ void hmca_hmf_jac (
 
 			indices[0] = r0;
 			indices[1] = r1;
-			// ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * yi[r0] * average[r1];
+			// ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * yi[r0] * yy[r1];
 			ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * yi[r0] * weights[j];
 			dfij[r0][r1] -= ky;
 			dfij[p0][r1] += ky;
 
 			indices[0] = r1;
 			indices[1] = r0;
-			// ky = (*nn) (indices, n_species_0) * average[n_species+k] * yi[r1];
+			// ky = (*nn) (indices, n_species_0) * kyy[k] * yi[r1];
 			ky = (*nn) (indices, n_species_0) * kj[n_unimol+k] * weights[j] * yi[r1];
 			dfij[r1][r0] -= ky;
 			dfij[p1][r0] += ky;
@@ -393,7 +529,101 @@ void hmca_hmf_jac (
 		free(dfij);
 	} // end for (i) for (j)
 
-	free(average);
+	free(yy);
+	free(kyy);
+
+	return;
+}
+
+void hmca_hmf_deriv_k (
+		const double *y,
+		double *dfdk,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		)
+{
+	int n_species = n_species_0+n_species_1;
+	int n_react = n_unimol+n_bimol;
+
+	double *yy = (double*)malloc(n_species*sizeof(double));
+	double *kyy = (double*)malloc(n_bimol*sizeof(double));
+	hmca_hmf_average(
+			y,
+			yy, kyy,
+			n_species_0, n_species_1, n_unimol, n_bimol, mesh,
+			reactions, rates, weights);
+
+	for (int i = 0; i < mesh; ++i) for (int j = 0; j < mesh; ++j)
+	{
+		const double *ki = rates+n_react*i;
+		const double *yi = y+n_species*i;
+		const double *kj = rates+n_react*j;
+		const double *yj = y+n_species*j;
+		double **dfij = (double**)malloc(n_species*sizeof(double*));
+
+		int k, l, m;
+		int r0, r1, p0, p1;
+		int n, indices[3];
+		double ky;
+
+		for (k = 0; k < n_species; ++k)
+		{
+			dfij[k] = dfdk + n_species*mesh*n_react*i + n_react*j + mesh*n_react*k;
+			memset(dfij[k], 0, n_react*sizeof(double));
+		}
+
+		if (i == j)
+		{
+			for (k = 0; k < n_unimol; ++k)
+			{
+				r0 = reactions[2*k+0];
+				p0 = reactions[2*k+1];
+				// ky = ki[k] * yi[r0];
+				dfij[r0][k] -= yi[r0];
+				dfij[p0][k] += yi[r0];
+			}
+
+			for (k = 0; k < n_bimol; ++k)
+			{
+				r0 = reactions[2*n_unimol+4*k+0];
+				r1 = reactions[2*n_unimol+4*k+1];
+				p0 = reactions[2*n_unimol+4*k+2];
+				p1 = reactions[2*n_unimol+4*k+3];
+
+				indices[0] = r0;
+				indices[1] = r1;
+				// ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * yi[r0] * yy[r1];
+				ky = (*nn) (indices, n_species_0) * yi[r0] * yy[r1];
+				dfij[r0][n_unimol+k] -= ky;
+				dfij[p0][n_unimol+k] += ky;
+
+				// indices[0] = r1;
+				// indices[1] = r0;
+				// ky = (*nn) (indices, n_species_0) * kyy[k] * yi[r1];
+			}
+		} // end if (i == j)
+
+		for (k = 0; k < n_bimol; ++k)
+		{
+			r0 = reactions[2*n_unimol+4*k+0];
+			r1 = reactions[2*n_unimol+4*k+1];
+			p0 = reactions[2*n_unimol+4*k+2];
+			p1 = reactions[2*n_unimol+4*k+3];
+
+			// indices[0] = r0;
+			// indices[1] = r1;
+			// ky = (*nn) (indices, n_species_0) * ki[n_unimol+k] * yi[r0] * yy[r1];
+
+			indices[0] = r1;
+			indices[1] = r0;
+			// ky = (*nn) (indices, n_species_0) * kyy[k] * yi[r1];
+			ky = (*nn) (indices, n_species_0) * yj[r0] * weights[j] * yi[r1];
+			dfij[r1][n_unimol+k] -= ky;
+			dfij[p1][n_unimol+k] += ky;
+		}
+	
+		free(dfij);
+	} // end for (i) for (j)
 
 	return;
 }
@@ -409,7 +639,8 @@ void hmca_pa_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn)
+		const int *reactions, const double *rates, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int nn_species = n_species*(n_species+1)/2;
@@ -480,7 +711,8 @@ void hmca_pa_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn)
+		const int *reactions, const double *rates, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int nn_species = n_species*(n_species+1)/2;
@@ -569,11 +801,12 @@ void hmca_pa_jac (
 	return;
 }
 
-void hmca_pa_jac_k (
+void hmca_pa_deriv_k (
 		const double *y,
 		double *dfdk,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn)
+		const int *reactions, const double *rates, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int nn_species = n_species*(n_species+1)/2;
@@ -648,9 +881,10 @@ void hmca_pa_jac_k (
 
 void hmca_hhpa_average (
 		const double *y,
-		double *average,
+		double *yy, double *kyy, double *yyy, double *kyyy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights)
+		const int *reactions, const double *rates, const double *weights
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int n_react = n_unimol+n_bimol;
@@ -660,12 +894,10 @@ void hmca_hhpa_average (
 	double y0, y1;
 	const double *kj, *yj;
 
-	double *yy = average;
-	double *kyy = yy+n_species*n_species;
-	double *kyyy = kyy+n_unimol*n_species+n_bimol;
-	double *yyy = kyyy+n_bimol*n_species;
-
-	memset(average, 0, (n_species*n_species + n_unimol*n_species + n_bimol + n_bimol*n_species + n_bimol*n_species)*sizeof(double));
+	memset(yy, 0, n_species*n_species*sizeof(double));
+	memset(kyy, 0, (n_unimol*n_species+n_bimol)*sizeof(double));
+	memset(yyy, 0, n_bimol*n_species*sizeof(double));
+	memset(kyyy, 0, n_bimol*n_species*sizeof(double));
 
 	for (j = 0; j < mesh; ++j)
 	{
@@ -698,8 +930,8 @@ void hmca_hhpa_average (
 
 			for (l = 0; l < n_species; ++l)
 			{
-				kyyy[n_species*k+l] += kj[n_unimol+k] * yj[n_species*r0+r1] * yj[n_species*r0+l] / (y0 + (y0 == 0.0)) * weights[j];
 				yyy[n_species*k+l] += yj[n_species*r1+r0] * yj[n_species*r1+l] / (y1 + (y1 == 0.0)) * weights[j];
+				kyyy[n_species*k+l] += kj[n_unimol+k] * yj[n_species*r0+r1] * yj[n_species*r0+l] / (y0 + (y0 == 0.0)) * weights[j];
 			}
 		}
 	}
@@ -711,20 +943,20 @@ void hmca_hhpa_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights, hmca_nn nn)
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int n_react = n_unimol+n_bimol;
 
-	double *average = (double*)malloc((n_species*n_species + n_unimol*n_species + n_bimol + n_bimol*n_species + n_bimol*n_species)*sizeof(double));
-	double *yy = average;
-	double *kyy = yy+n_species*n_species;
-	double *kyyy = kyy+n_unimol*n_species+n_bimol;
-	double *yyy = kyyy+n_bimol*n_species;
+	double *yy = (double*)malloc(n_species*n_species*sizeof(double));
+	double *kyy = (double*)malloc((n_unimol*n_species+n_bimol)*sizeof(double));
+	double *yyy = (double*)malloc(n_bimol*n_species*sizeof(double));
+	double *kyyy = (double*)malloc(n_bimol*n_species*sizeof(double));
 
 	hmca_hhpa_average(
 			y,
-			average,
+			yy, kyy, yyy, kyyy,
 			n_species_0, n_species_1, n_unimol, n_bimol, mesh,
 			reactions, rates, weights);
 
@@ -805,7 +1037,10 @@ void hmca_hhpa_func (
 		}
 	}
 
-	free(average);
+	free(yy);
+	free(kyy);
+	free(yyy);
+	free(kyyy);
 
 	return;
 }
@@ -814,20 +1049,20 @@ void hmca_hhpa_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights, hmca_nn nn)
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int n_react = n_unimol+n_bimol;
 
-	double *average = (double*)malloc((n_species*n_species + n_unimol*n_species + n_bimol + n_bimol*n_species + n_bimol*n_species)*sizeof(double));
-	double *yy = average;
-	double *kyy = yy+n_species*n_species;
-	double *kyyy = kyy+n_unimol*n_species+n_bimol;
-	double *yyy = kyyy+n_bimol*n_species;
+	double *yy = (double*)malloc(n_species*n_species*sizeof(double));
+	double *kyy = (double*)malloc((n_unimol*n_species+n_bimol)*sizeof(double));
+	double *yyy = (double*)malloc(n_bimol*n_species*sizeof(double));
+	double *kyyy = (double*)malloc(n_bimol*n_species*sizeof(double));
 
 	hmca_hhpa_average(
 			y,
-			average,
+			yy, kyy, yyy, kyyy,
 			n_species_0, n_species_1, n_unimol, n_bimol, mesh,
 			reactions, rates, weights);
 
@@ -1066,29 +1301,32 @@ void hmca_hhpa_jac (
 		free(dfij);
 	} // end for (i) for (j)
 
-	free(average);
+	free(yy);
+	free(kyy);
+	free(yyy);
+	free(kyyy);
 
 	return;
 }
 
-void hmca_hhpa_jac_k (
+void hmca_hhpa_deriv_k (
 		const double *y,
 		double *dfdk,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights, hmca_nn nn)
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int n_react = n_unimol+n_bimol;
 
-	double *average = (double*)malloc((n_species*n_species + n_unimol*n_species + n_bimol + n_bimol*n_species + n_bimol*n_species)*sizeof(double));
-	double *yy = average;
-	double *kyy = yy+n_species*n_species;
-	double *kyyy = kyy+n_unimol*n_species+n_bimol;
-	double *yyy = kyyy+n_bimol*n_species;
+	double *yy = (double*)malloc(n_species*n_species*sizeof(double));
+	double *kyy = (double*)malloc((n_unimol*n_species+n_bimol)*sizeof(double));
+	double *yyy = (double*)malloc(n_bimol*n_species*sizeof(double));
+	double *kyyy = (double*)malloc(n_bimol*n_species*sizeof(double));
 
 	hmca_hhpa_average(
 			y,
-			average,
+			yy, kyy, yyy, kyyy,
 			n_species_0, n_species_1, n_unimol, n_bimol, mesh,
 			reactions, rates, weights);
 
@@ -1244,6 +1482,11 @@ void hmca_hhpa_jac_k (
 		free(dfij);
 	} // end for (i) for (j)
 
+	free(yy);
+	free(kyy);
+	free(yyy);
+	free(kyyy);
+
 	return;
 }	
 
@@ -1255,7 +1498,8 @@ void hmca_mlmc_func (
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		mlmc_closure closure, mlmc_closure deriv, void *model)
+		hmca_mc closure, hmca_mc deriv, void *model
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int nn_species = n_species*(n_species+1)/2;
@@ -1319,7 +1563,8 @@ void hmca_mlmc_jac (
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		mlmc_closure closure, mlmc_closure deriv, void *model)
+		hmca_mc closure, hmca_mc deriv, void *model
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int nn_species = n_species*(n_species+1)/2;
@@ -1396,12 +1641,13 @@ void hmca_mlmc_jac (
 	return;
 }
 
-void hmca_mlmc_jac_z (
+void hmca_mlmc_deriv_z (
 		const double *y,
 		double *dfdz,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		mlmc_closure closure, mlmc_closure deriv, void *model)
+		hmca_mc closure, hmca_mc deriv, void *model
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int nn_species = n_species*(n_species+1)/2;
@@ -1474,7 +1720,8 @@ void hmca_spa_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
-		const int *pairs, const int *reactions, const double *rates, hmca_nn nn)
+		const int *pairs, const int *reactions, const double *rates, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int n_dof = n_species+n_pairs;
@@ -1655,7 +1902,8 @@ void hmca_spa_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
-		const int *pairs, const int *reactions, const double *rates, hmca_nn nn)
+		const int *pairs, const int *reactions, const double *rates, hmca_nn nn
+		)
 {
 	int n_species = n_species_0+n_species_1;
 	int n_dof = n_species+n_pairs;
@@ -1889,11 +2137,10 @@ void hmca_spa_jac (
 						}
 					}
 				}
-			}
+			} // end for (k) for (l)
 		} // end for (j)
-	}
+	} // end for (i)
 
 	return;
 }
-
 

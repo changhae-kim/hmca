@@ -8,7 +8,7 @@
 
 typedef double (*hmca_nn) (const int *indices, int n_species_0);
 
-typedef double (*mlmc_closure) (const int *indices, const double *y, int n_species_0, int n_species_1, void *model);
+typedef double (*hmca_mc) (const int *indices, const double *y, int n_species_0, int n_species_1, void *model);
 
 
 // Shared Functions
@@ -18,15 +18,29 @@ inline int hmca_sym_id (int i, int j, int n)
 	return (i < j) ? (n*i+j-i*(i+1)/2) : (n*j+i-j*(j+1)/2);
 }
 
-void hmca_lognorm_1d (
+void hmca_lognorm (
 		const double *logk0, const double *dlogk,
 		double *rates, double *weights,
-		int n_unimol, int n_bimol, int mesh, double bound);
+		int n_unimol, int n_bimol, int mesh, double bound
+		);
 
-void hmca_logexp_1d (
+void hmca_lognorm_deriv (
+		const double *logk0, const double *dlogk,
+		double *dkdlogk0, double *dkddlogk,
+		int n_unimol, int n_bimol, int mesh, double bound
+		);
+
+void hmca_logexp (
 		const double *logk0, const double *dlogk,
 		double *rates, double *weights,
-		int n_unimol, int n_bimol, int mesh, double bound);
+		int n_unimol, int n_bimol, int mesh, double bound
+		);
+
+void hmca_logexp_deriv (
+		const double *logk0, const double *dlogk,
+		double *dkdlogk0, double *dkddlogk,
+		int n_unimol, int n_bimol, int mesh, double bound
+		);
 
 
 // Mean-Field Approximation
@@ -45,13 +59,22 @@ void hmca_mf_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn);
+		const int *reactions, const double *rates, hmca_nn nn
+		);
 
 void hmca_mf_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn);
+		const int *reactions, const double *rates, hmca_nn nn
+		);
+
+void hmca_mf_deriv_k (
+		const double *y,
+		double *dfdk,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+		const int *reactions, const double *rates, hmca_nn nn
+		);
 
 
 // Heterogeneous Mean-Field Approximation
@@ -62,21 +85,31 @@ void hmca_mf_jac (
 
 void hmca_hmf_average (
 		const double *y,
-		double *average,
+		double *yy, double *kyy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights);
+		const int *reactions, const double *rates, const double *weights
+		);
 
 void hmca_hmf_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights, hmca_nn nn);
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		);
 
 void hmca_hmf_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights, hmca_nn nn);
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		);
+
+void hmca_hmf_deriv_k (
+		const double *y,
+		double *dfdk,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		);
 
 
 // Pair Approximation
@@ -95,19 +128,22 @@ void hmca_pa_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn);
+		const int *reactions, const double *rates, hmca_nn nn
+		);
 
 void hmca_pa_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn);
+		const int *reactions, const double *rates, hmca_nn nn
+		);
 
-void hmca_pa_jac_k (
+void hmca_pa_deriv_k (
 		const double *y,
-		double *dfdy,
+		double *dfdk,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn);
+		const int *reactions, const double *rates, hmca_nn nn
+		);
 
 
 // Half Heterogeneous Pair Approximation
@@ -118,27 +154,31 @@ void hmca_pa_jac_k (
 
 void hmca_hhpa_average (
 		const double *y,
-		double *average,
+		double *yy, double *kyy, double *yyy, double *kyyy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights);
+		const int *reactions, const double *rates, const double *weights
+		);
 
 void hmca_hhpa_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights, hmca_nn nn);
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		);
 
 void hmca_hhpa_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights, hmca_nn nn);
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		);
 
-void hmca_hhpa_jac_k (
+void hmca_hhpa_deriv_k (
 		const double *y,
-		double *dfdy,
+		double *dfdk,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
-		const int *reactions, const double *rates, const double *weights, hmca_nn nn);
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		);
 
 
 // Machine Learning Moment Closure
@@ -148,21 +188,24 @@ void hmca_mlmc_func (
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		mlmc_closure closure, mlmc_closure deriv, void *model);
+		hmca_mc closure, hmca_mc deriv, void *model
+		);
 
 void hmca_mlmc_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		mlmc_closure closure, mlmc_closure deriv, void *model);
+		hmca_mc closure, hmca_mc deriv, void *model
+		);
 
-void hmca_mlmc_jac_z (
+void hmca_mlmc_deriv_z (
 		const double *y,
-		double *dfdy,
+		double *dfdz,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		mlmc_closure closure, mlmc_closure deriv, void *model);
+		hmca_mc closure, hmca_mc deriv, void *model
+		);
 
 
 // Select Pair Approximation
@@ -181,12 +224,14 @@ void hmca_spa_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
-		const int *pairs, const int *reactions, const double *rates, hmca_nn nn);
+		const int *pairs, const int *reactions, const double *rates, hmca_nn nn
+		);
 
 void hmca_spa_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
-		const int *pairs, const int *reactions, const double *rates, hmca_nn nn);
+		const int *pairs, const int *reactions, const double *rates, hmca_nn nn
+		);
 
 #endif
