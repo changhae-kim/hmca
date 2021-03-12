@@ -208,7 +208,7 @@ int main (int argc, char* argv[])
 		printf("\n");
 	}
 
-	hmca_lognorm_set_dkdx(logk0, dlogk, dkdlogk0, dkddlogk, n_unimol, n_bimol, mesh, bound);
+	hmca_lognorm_dkdx(logk0, dlogk, dkdlogk0, dkddlogk, n_unimol, n_bimol, mesh, bound);
 
 	printf("dkdlogk0 =\n");
 	for (i = 0; i < mesh*n_react; ++i)
