@@ -150,7 +150,7 @@ int main (int argc, char* argv[])
 	}
 
 	// Jacobian w.r.t. Closure
-	hmca_mlmc_deriv_z(y, dfdz, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
+	hmca_mlmc_dfdz(y, dfdz, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
 
 	printf("dfdz_n - dfdz =\n");
 	for (i = 0; i < nnn_species; ++i)

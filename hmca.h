@@ -18,25 +18,25 @@ inline int hmca_sym_id (int i, int j, int n)
 	return (i < j) ? (n*i+j-i*(i+1)/2) : (n*j+i-j*(j+1)/2);
 }
 
-void hmca_lognorm (
+void hmca_lognorm_set (
 		const double *logk0, const double *dlogk,
 		double *rates, double *weights,
 		int n_unimol, int n_bimol, int mesh, double bound
 		);
 
-void hmca_lognorm_deriv (
+void hmca_lognorm_dkdx (
 		const double *logk0, const double *dlogk,
 		double *dkdlogk0, double *dkddlogk,
 		int n_unimol, int n_bimol, int mesh, double bound
 		);
 
-void hmca_logexp (
+void hmca_logexp_set (
 		const double *logk0, const double *dlogk,
 		double *rates, double *weights,
 		int n_unimol, int n_bimol, int mesh, double bound
 		);
 
-void hmca_logexp_deriv (
+void hmca_logexp_dkdx (
 		const double *logk0, const double *dlogk,
 		double *dkdlogk0, double *dkddlogk,
 		int n_unimol, int n_bimol, int mesh, double bound
@@ -69,7 +69,7 @@ void hmca_mf_jac (
 		const int *reactions, const double *rates, hmca_nn nn
 		);
 
-void hmca_mf_deriv_k (
+void hmca_mf_dfdk (
 		const double *y,
 		double *dfdk,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
@@ -85,7 +85,7 @@ void hmca_mf_deriv_k (
 
 void hmca_hmf_average (
 		const double *y,
-		double *yy, double *kyy,
+		double *_y, double *_ky,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
 		const int *reactions, const double *rates, const double *weights
 		);
@@ -104,7 +104,7 @@ void hmca_hmf_jac (
 		const int *reactions, const double *rates, const double *weights, hmca_nn nn
 		);
 
-void hmca_hmf_deriv_k (
+void hmca_hmf_dfdk (
 		const double *y,
 		double *dfdk,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
@@ -138,7 +138,7 @@ void hmca_pa_jac (
 		const int *reactions, const double *rates, hmca_nn nn
 		);
 
-void hmca_pa_deriv_k (
+void hmca_pa_dfdk (
 		const double *y,
 		double *dfdk,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
@@ -154,7 +154,7 @@ void hmca_pa_deriv_k (
 
 void hmca_hhpa_average (
 		const double *y,
-		double *yy, double *kyy, double *yyy, double *kyyy,
+		double *_y, double *_ky, double *_yy, double *_kyy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
 		const int *reactions, const double *rates, const double *weights
 		);
@@ -173,7 +173,7 @@ void hmca_hhpa_jac (
 		const int *reactions, const double *rates, const double *weights, hmca_nn nn
 		);
 
-void hmca_hhpa_deriv_k (
+void hmca_hhpa_dfdk (
 		const double *y,
 		double *dfdk,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
@@ -199,7 +199,7 @@ void hmca_mlmc_jac (
 		hmca_mc closure, hmca_mc deriv, void *model
 		);
 
-void hmca_mlmc_deriv_z (
+void hmca_mlmc_dfdz (
 		const double *y,
 		double *dfdz,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,

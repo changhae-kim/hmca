@@ -39,21 +39,20 @@ int main (int argc, char* argv[])
 	};	*/
 
 	int n_species = n_species_0+n_species_1;
-	int nn_species = n_species*(n_species+1)/2;
 	int n_react = n_unimol+n_bimol;
 
 	double *rates = (double*)malloc(n_react*sizeof(double));
-	double *y = (double*)malloc(nn_species*sizeof(double));
+	double *y = (double*)malloc(n_species*sizeof(double));
 
 	double h = 1e-8;
 	double aerr;
-	double *dfdy = (double*)malloc(nn_species*nn_species*sizeof(double));
-	double *dydta = (double*)malloc(nn_species*sizeof(double));
-	double *dydtb = (double*)malloc(nn_species*sizeof(double));
-	double *dfdk = (double*)malloc(nn_species*n_react*sizeof(double));
+	double *dfdy = (double*)malloc(n_species*n_species*sizeof(double));
+	double *dydta = (double*)malloc(n_species*sizeof(double));
+	double *dydtb = (double*)malloc(n_species*sizeof(double));
+	double *dfdk = (double*)malloc(n_species*n_react*sizeof(double));
 
 
-	// Random Number Generator
+	// Randum Number Generator
 	unsigned long seed;
 	int p_kvar = 10;
 	int p_zero = 3;
@@ -75,58 +74,58 @@ int main (int argc, char* argv[])
 	printf("\n");
 
 	// Random Moments
-	for (i = 0; i < n_species; ++i) for (j = i; j < n_species; ++j)
-		y[hmca_sym_id(i, j, n_species)] = (rand()%p_zero > 0) * (double)(rand()%p_yvar+1)/p_yvar;
+	for (i = 0; i < n_species; ++i)
+		y[i] = (rand()%p_zero > 0) * (double)(rand()%p_yvar+1)/p_yvar;
 
 	printf("y =");
-	for (i = 0; i < nn_species; ++i)
+	for (i = 0; i < n_species; ++i)
 		printf(" %.2f", y[i]);
 	printf("\n");
 
 
 	// Function and Jacobian
-	hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
-	hmca_pa_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+	hmca_mf_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
+	hmca_mf_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
 
 	printf("f =");
-	for (i = 0; i < nn_species; ++i)
+	for (i = 0; i < n_species; ++i)
 		printf(" %+.6f", dydta[i]);
 	printf("\n");
 
 	printf("J =\n");
-	for (i = 0; i < nn_species; ++i)
+	for (i = 0; i < n_species; ++i)
 	{
-		for(j = 0; j < nn_species; ++j)
-			printf(" %+.6f", dfdy[nn_species*i+j]);
+		for(j = 0; j < n_species; ++j)
+			printf(" %+.6f", dfdy[n_species*i+j]);
 		printf("\n");
 	}
 
 	// Compare to Numerical Jacobian
-	printf("J_n - J =\n"); 
-	for (i = 0; i < nn_species; ++i)
+	printf("J_n - J =\n");
+	for (i = 0; i < n_species; ++i)
 	{
 		if (y[i] > 0.0)
 		{
 			y[i] += h;
-			hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+			hmca_mf_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
 			y[i] -= 2.0*h;
-			hmca_pa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+			hmca_mf_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
 			y[i] += h;
-			for(j = 0; j < nn_species; ++j)
+			for(j = 0; j < n_species; ++j)
 			{
-				aerr = (dydta[j]-dydtb[j])/(2.0*h) - dfdy[nn_species*j+i];
+				aerr = (dydta[j]-dydtb[j])/(2.0*h) - dfdy[n_species*j+i];
 				printf(" %+.6f", aerr);
 			}
 		}
 		else
 		{
 			y[i] += h;
-			hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+			hmca_mf_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
 			y[i] -= h;
-			hmca_pa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
-			for(j = 0; j < nn_species; ++j)
+			hmca_mf_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
+			for(j = 0; j < n_species; ++j)
 			{
-				aerr = (dydta[j]-dydtb[j])/h - dfdy[nn_species*j+i];
+				aerr = (dydta[j]-dydtb[j])/h - dfdy[n_species*j+i];
 				printf(" %+.6f", aerr);
 			}
 		}
@@ -134,17 +133,17 @@ int main (int argc, char* argv[])
 	}
 
 	// Derivative w.r.t. Rate Constants
-	hmca_pa_dfdk(y, dfdk, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+	hmca_mf_dfdk(y, dfdk, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
 
-	printf("dfdk_n - dfdk =\n"); 
+	printf("dfdk_n - dfdk =\n");
 	for (i = 0; i < n_react; ++i)
 	{
 		rates[i] += h;
-		hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+		hmca_mf_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
 		rates[i] -= 2.0*h;
-		hmca_pa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+		hmca_mf_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
 		rates[i] += h;
-		for(j = 0; j < nn_species; ++j)
+		for(j = 0; j < n_species; ++j)
 		{
 			aerr = (dydta[j]-dydtb[j])/(2.0*h) - dfdk[n_react*j+i];
 			printf(" %+.6f", aerr);
@@ -152,13 +151,14 @@ int main (int argc, char* argv[])
 		printf("\n");
 	}
 
+
 /*	// Timing
 	t0 = clock();
-	for (i = 0; i < 2.1e+5; ++i)
-		hmca_pa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+	for (i = 0; i < 4.2e+6; ++i)
+		hmca_mf_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
 	t1 = clock();
-	for (i = 0; i < 2.6e+4; ++i)
-		hmca_pa_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_pa_nn_2x1);
+	for (i = 0; i < 2.2e+6; ++i)
+		hmca_mf_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mf_nn_2x1);
 	t2 = clock();
 	printf("%f\n", (double)(t1-t0)/CLOCKS_PER_SEC);
 	printf("%f\n", (double)(t2-t1)/CLOCKS_PER_SEC);	*/
