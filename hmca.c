@@ -36,7 +36,7 @@ void hmca_lognorm_set (
 		x = i*dx-bound;
 		for (j = 0; j < n_react; ++j)
 			rates[n_react*i+j] = exp(logk0[j]+x*dlogk[j]);
-		weights[i] = ((i > 0 && i+1 < mesh) ? (2.0) : (1.0)) * exp(-0.5*x*x) * dx;
+		weights[i] = (1.0 + (i > 0 && i+1 < mesh) * 1.0) * exp(-0.5*x*x) * dx;
 	}
 
 	norm = 0.0;
@@ -119,7 +119,7 @@ void hmca_logexp_set (
 		x = i*dx;
 		for (j = 0; j < n_react; ++j)
 			rates[n_react*i+j] = exp(logk0[j]-x*dlogk[j]);
-		weights[i] = ((i > 0 && i+1 < mesh) ? ((i%2 == 1) ? (4.0) : (2.0)) : (1.0)) * exp(-x) * dx;
+		weights[i] = (1.0 + (i > 0 && i+1 < mesh) * (1.0 + (i%2 == 1) * 2.0)) * exp(-x) * dx;
 	}
 
 	norm = 0.0;
@@ -340,17 +340,16 @@ void hmca_hmf_average (
 	int n_species = n_species_0+n_species_1;
 	int n_react = n_unimol+n_bimol;
 
-	int j, k;
-	int r0;
-	const double *kj, *yj;
-
 	memset(_y, 0, n_species*sizeof(double));
 	memset(_ky, 0, n_bimol*sizeof(double));
 
-	for (j = 0; j < mesh; ++j)
+	for (int j = 0; j < mesh; ++j)
 	{
-		kj = rates+n_react*j;
-		yj = y+n_species*j;
+		const double *kj = rates+n_react*j;
+		const double *yj = y+n_species*j;
+
+		int k;
+		int r0;
 
 		for (k = 0; k < n_species; ++k)
 		{
@@ -890,20 +889,19 @@ void hmca_hhpa_average (
 	int n_species = n_species_0+n_species_1;
 	int n_react = n_unimol+n_bimol;
 
-	int j, k, l;
-	int r0, r1;
-	double y0, y1;
-	const double *kj, *yj;
-
 	memset(_y, 0, n_species*n_species*sizeof(double));
 	memset(_ky, 0, (n_unimol*n_species+n_bimol)*sizeof(double));
 	memset(_yy, 0, n_bimol*n_species*sizeof(double));
 	memset(_kyy, 0, n_bimol*n_species*sizeof(double));
 
-	for (j = 0; j < mesh; ++j)
+	for (int j = 0; j < mesh; ++j)
 	{
-		kj = rates+n_react*j;
-		yj = y+n_species*n_species*j;
+		const double *kj = rates+n_react*j;
+		const double *yj = y+n_species*n_species*j;
+
+		int k, l;
+		int r0, r1;
+		double y0, y1;
 
 		for (k = 0; k < n_species*n_species; ++k)
 		{
@@ -1164,11 +1162,13 @@ void hmca_hhpa_jac (
 					n = (*nn) (indices, n_species_0);
 					// ky = (*nn) (indices, n_species_0) * _ky[n_unimol*n_species+k] * yi[n_species*r1+r0] * yi[n_species*r1+l]
 					//	/ (_y[n_species*r0+r1] + (_y[n_species*r0+r1] == 0.0)) / (yi1 + (yi1 == 0.0));
-					ky = n * (_ky[n_unimol*n_species+k] + (_y[n_species*r0+r1] == 0.0 && r0 == r1) * kj[n_unimol+k]) * (yi[n_species*r1+l] + (yi1 == 0.0 && l == r0))
+					ky = n * (_ky[n_unimol*n_species+k] + (_y[n_species*r0+r1] == 0.0 && r0 == r1) * kj[n_unimol+k])
+						* (yi[n_species*r1+l] + (yi1 == 0.0 && l == r0))
 						/ (_y[n_species*r0+r1] + (_y[n_species*r0+r1] == 0.0)) / (yi1 + (yi1 == 0.0));
 					dfij[n_species*r1+l][n_species*r1+r0] -= ky;
 					dfij[n_species*p1+l][n_species*r1+r0] += ky;
-					ky = n * (_ky[n_unimol*n_species+k] + (_y[n_species*r0+r1] == 0.0 && l == r0 && r0 == r1) * kj[n_unimol+k]) * (yi[n_species*r1+r0] + (yi1 == 0.0 && l == r0))
+					ky = n * (_ky[n_unimol*n_species+k] + (_y[n_species*r0+r1] == 0.0 && l == r0 && r0 == r1) * kj[n_unimol+k])
+						* (yi[n_species*r1+r0] + (yi1 == 0.0 && l == r0))
 						/ (_y[n_species*r0+r1] + (_y[n_species*r0+r1] == 0.0)) / (yi1 + (yi1 == 0.0));
 					dfij[n_species*r1+l][n_species*r1+l] -= ky;
 					dfij[n_species*p1+l][n_species*r1+l] += ky;
@@ -1492,6 +1492,405 @@ void hmca_hhpa_dfdk (
 
 	return;
 }	
+
+
+// Symmetric Heterogeneous Pair Approximation
+
+void hmca_shpa_average (
+		const double *y,
+		double *_y, double *_ky,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights
+		)
+{
+	int n_species = n_species_0+n_species_1;
+	int nn_species = n_species*(n_species+1)/2;
+	int n_react = n_unimol+n_bimol;
+
+	memset(_y, 0, nn_species*sizeof(double));
+	memset(_ky, 0, n_react*sizeof(double));
+
+	for (int j = 0; j < mesh; ++j)
+	{
+		const double *kj = rates+n_react*j;
+		const double *yj = y+nn_species*j;
+
+		int k, l;
+		int r0, r1;
+		double yj0;
+
+		for (k = 0; k < nn_species; ++k)
+		{
+			_y[k] += yj[k] * weights[j];
+		}
+
+		for (k = 0; k < n_unimol; ++k)
+		{
+			r0 = reactions[2*k+0];
+
+			yj0 = 0.0;
+			for (l = 0; l < n_species; ++l)
+			{
+				yj0 += yj[hmca_sym_id(r0, l, n_species)];
+			}
+
+			_ky[k] += kj[k] * yj0 * weights[j];
+		}
+
+		for (k = 0; k < n_bimol; ++k)
+		{
+			r0 = reactions[2*n_unimol+4*k+0];
+			r1 = reactions[2*n_unimol+4*k+1];
+			_ky[n_unimol+k] += kj[n_unimol+k] * yj[hmca_sym_id(r0, r1, n_species)] * weights[j];
+		}
+	}
+
+	return;
+}
+
+void hmca_shpa_func (
+		const double *y,
+		double *dydt,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		)
+{
+	int n_species = n_species_0+n_species_1;
+	int nn_species = n_species*(n_species+1)/2;
+	int n_react = n_unimol+n_bimol;
+
+	double *_y = (double*)malloc(nn_species*sizeof(double));
+	double *_ky = (double*)malloc(n_react*sizeof(double));
+
+	hmca_shpa_average(
+			y,
+			_y, _ky,
+			n_species_0, n_species_1, n_unimol, n_bimol, mesh,
+			reactions, rates, weights
+			);
+
+	for (int i = 0; i < mesh; ++i)
+	{
+		const double *ki = rates+n_react*i;
+		const double *yi = y+nn_species*i;
+		double *fi = dydt+nn_species*i;
+
+		int k, l, m;
+		int r0, r1, p0, p1;
+		int n, indices[3];
+		double ny, ky, _y0, _y1;
+
+		memset(fi, 0, nn_species*sizeof(double));
+
+		for (k = 0; k < n_unimol; ++k)
+		{
+			r0 = reactions[2*k+0];
+			p0 = reactions[2*k+1];
+
+			_y0 = 0.0;
+			for (l = 0; l < n_species; ++l)
+			{
+				_y0 += _y[hmca_sym_id(r0, l, n_species)];
+			}
+
+			for (l = 0; l < n_species; ++l)
+			{
+				ky = ki[k] * yi[hmca_sym_id(r0, l, n_species)];
+				fi[hmca_sym_id(r0, l, n_species)] -= ky;
+				fi[hmca_sym_id(p0, l, n_species)] += ky;
+
+				ny = 0.0;
+				indices[1] = r0;
+				indices[2] = l;
+				for (m = 0; m < n_species; ++m)
+				{
+					indices[0] = m;
+					ny += (*nn) (indices, n_species_0) * _y[hmca_sym_id(r0, m, n_species)];
+				}
+
+				ky = ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
+				fi[hmca_sym_id(r0, l, n_species)] -= ky;
+				fi[hmca_sym_id(p0, l, n_species)] += ky;
+			}
+		}
+
+		for (k = 0; k < n_bimol; ++k)
+		{
+			r0 = reactions[2*n_unimol+4*k+0];
+			r1 = reactions[2*n_unimol+4*k+1];
+			p0 = reactions[2*n_unimol+4*k+2];
+			p1 = reactions[2*n_unimol+4*k+3];
+
+			ky = ki[n_unimol+k] * yi[hmca_sym_id(r0, r1, n_species)];
+			fi[hmca_sym_id(r0, r1, n_species)] -= ky;
+			fi[hmca_sym_id(p0, p1, n_species)] += ky;
+
+			_y0 = 0.0;
+			_y1 = 0.0;
+			for (l = 0; l < n_species; ++l)
+			{
+				_y0 += _y[hmca_sym_id(r0, l, n_species)];
+				_y1 += _y[hmca_sym_id(r1, l, n_species)];
+			}
+
+			for (l = 0; l < n_species; ++l)
+			{
+				indices[0] = r1;
+				indices[1] = r0;
+				indices[2] = l;
+				ky = (*nn) (indices, n_species_0) * _ky[n_unimol+k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 + (_y0 == 0.0));
+				fi[hmca_sym_id(r0, l, n_species)] -= ky;
+				fi[hmca_sym_id(p0, l, n_species)] += ky;
+
+				indices[0] = r0;
+				indices[1] = r1;
+				indices[2] = l;
+				ky = (*nn) (indices, n_species_0) * _ky[n_unimol+k] * yi[hmca_sym_id(r1, l, n_species)] / (_y1 + (_y1 == 0.0));
+				fi[hmca_sym_id(r1, l, n_species)] -= ky;
+				fi[hmca_sym_id(p1, l, n_species)] += ky;
+			}
+		}
+
+		for (k = 0; k < n_species; ++k)
+			fi[hmca_sym_id(k, k, n_species)] += fi[hmca_sym_id(k, k, n_species)];
+	}
+
+	free(_y);
+	free(_ky);
+
+	return;
+}
+
+void hmca_shpa_jac (
+		const double *y,
+		double *dfdy,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		)
+{
+	int n_species = n_species_0+n_species_1;
+	int nn_species = n_species*(n_species+1)/2;
+	int n_react = n_unimol+n_bimol;
+
+	double *_y = (double*)malloc(nn_species*sizeof(double));
+	double *_ky = (double*)malloc(n_react*sizeof(double));
+
+	hmca_shpa_average(
+			y,
+			_y, _ky,
+			n_species_0, n_species_1, n_unimol, n_bimol, mesh,
+			reactions, rates, weights
+			);
+
+	for (int i = 0; i < mesh; ++i) for (int j = 0; j < mesh; ++j)
+	{
+		const double *ki = rates+n_react*i;
+		const double *yi = y+nn_species*i;
+		const double *kj = rates+n_react*j;
+		const double *yj = y+nn_species*j;
+		double **dfij = (double**)malloc(nn_species*sizeof(double*));
+
+		int k, l, m;
+		int r0, r1, p0, p1;
+		int n, indices[3];
+		double ny, ky, _y0, _y1;
+
+		for (k = 0; k < nn_species; ++k)
+		{
+			dfij[k] = dfdy + nn_species*mesh*(nn_species*i+k) + nn_species*j;
+			memset(dfij[k], 0, nn_species*sizeof(double));
+		}
+
+		if (i == j)
+		{
+			for (k = 0; k < n_unimol; ++k)
+			{
+				r0 = reactions[2*k+0];
+				p0 = reactions[2*k+1];
+
+				_y0 = 0.0;
+				for (l = 0; l < n_species; ++l)
+				{
+					_y0 += _y[hmca_sym_id(r0, l, n_species)];
+				}
+
+				for (l = 0; l < n_species; ++l)
+				{
+					// ky = ki[k] * yi[hmca_sym_id(r0, l, n_species)];
+					dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, l, n_species)] -= ki[k];
+					dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, l, n_species)] += ki[k];
+
+					ny = 0.0;
+					indices[1] = r0;
+					indices[2] = l;
+					for (m = 0; m < n_species; ++m)
+					{
+						indices[0] = m;
+						ny += (*nn) (indices, n_species_0) * _y[hmca_sym_id(r0, m, n_species)];
+					}
+
+					// ky = ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
+					indices[0] = l;
+					ky = (ny * _ky[k] + (_y0 == 0.0) * (*nn) (indices, n_species_0) * kj[k]) / (_y0 * _y0 + (_y0 == 0.0));
+					dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, l, n_species)] -= ky;
+					dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, l, n_species)] += ky;
+				}
+			}
+
+			for (k = 0; k < n_bimol; ++k)
+			{
+				r0 = reactions[2*n_unimol+4*k+0];
+				r1 = reactions[2*n_unimol+4*k+1];
+				p0 = reactions[2*n_unimol+4*k+2];
+				p1 = reactions[2*n_unimol+4*k+3];
+
+				// ky = ki[n_unimol+k] * yi[hmca_sym_id(r0, r1, n_species)];
+				dfij[hmca_sym_id(r0, r1, n_species)][hmca_sym_id(r0, r1, n_species)] -= ki[n_unimol+k];
+				dfij[hmca_sym_id(p0, p1, n_species)][hmca_sym_id(r0, r1, n_species)] += ki[n_unimol+k];
+
+				_y0 = 0.0;
+				_y1 = 0.0;
+				for (l = 0; l < n_species; ++l)
+				{
+					_y0 += _y[hmca_sym_id(r0, l, n_species)];
+					_y1 += _y[hmca_sym_id(r1, l, n_species)];
+				}
+
+				for (l = 0; l < n_species; ++l)
+				{
+					indices[0] = r1;
+					indices[1] = r0;
+					indices[2] = l;
+					// ky = (*nn) (indices, n_species_0) * _ky[n_unimol+k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 + (_y0 == 0.0));
+					ky = (*nn) (indices, n_species_0) * (_ky[n_unimol+k] + (_y0 == 0.0 && l == r1) * kj[n_unimol+k]) / (_y0 + (_y0 == 0.0));
+					dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, l, n_species)] -= ky;
+					dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, l, n_species)] += ky;
+
+					indices[0] = r0;
+					indices[1] = r1;
+					indices[2] = l;
+					// ky = (*nn) (indices, n_species_0) * _ky[n_unimol+k] * yi[hmca_sym_id(r1, l, n_species)] / (_y1 + (_y1 == 0.0));
+					ky = (*nn) (indices, n_species_0) * (_ky[n_unimol+k] + (_y1 == 0.0 && l == r0) * kj[n_unimol+k]) / (_y1 + (_y1 == 0.0));
+					dfij[hmca_sym_id(r1, l, n_species)][hmca_sym_id(r1, l, n_species)] -= ky;
+					dfij[hmca_sym_id(p1, l, n_species)][hmca_sym_id(r1, l, n_species)] += ky;
+				}
+			}
+		} // end if (i == j)
+
+		for (k = 0; k < n_unimol; ++k)
+		{
+			r0 = reactions[2*k+0];
+			p0 = reactions[2*k+1];
+
+			_y0 = 0.0;
+			for (l = 0; l < n_species; ++l)
+			{
+				_y0 += _y[hmca_sym_id(r0, l, n_species)];
+			}
+
+			for (l = 0; l < n_species; ++l)
+			{
+				// ky = ki[k] * yi[hmca_sym_id(r0, l, n_species)];
+
+				ny = 0.0;
+				indices[1] = r0;
+				indices[2] = l;
+				for (m = 0; m < n_species; ++m)
+				{
+					indices[0] = m;
+					ny += (*nn) (indices, n_species_0) * _y[hmca_sym_id(r0, m, n_species)];
+				}
+
+				// ky = ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
+				ky = ny * kj[k] * weights[j] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0))
+					- 2.0 * ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] * weights[j] / (_y0 * _y0 * _y0 + (_y0 == 0.0));
+				for (m = 0; m < n_species; ++m)
+				{
+					dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, m, n_species)] -= ky;
+					dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, m, n_species)] += ky;
+				}
+				for (m = 0; m < n_species; ++m)
+				{
+					indices[0] = m;
+					ky = (*nn) (indices, n_species_0) * weights[j] * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
+					dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, m, n_species)] -= ky;
+					dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, m, n_species)] += ky;
+				}
+			}
+		}
+
+		for (k = 0; k < n_bimol; ++k)
+		{
+			r0 = reactions[2*n_unimol+4*k+0];
+			r1 = reactions[2*n_unimol+4*k+1];
+			p0 = reactions[2*n_unimol+4*k+2];
+			p1 = reactions[2*n_unimol+4*k+3];
+
+			// ky = ki[n_unimol+k] * yi[hmca_sym_id(r0, r1, n_species)];
+
+			_y0 = 0.0;
+			_y1 = 0.0;
+			for (l = 0; l < n_species; ++l)
+			{
+				_y0 += _y[hmca_sym_id(r0, l, n_species)];
+				_y1 += _y[hmca_sym_id(r1, l, n_species)];
+			}
+
+			for (l = 0; l < n_species; ++l)
+			{
+				indices[0] = r1;
+				indices[1] = r0;
+				indices[2] = l;
+				n = (*nn) (indices, n_species_0);
+				// ky = (*nn) (indices, n_species_0) * _ky[n_unimol+k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 + (_y0 == 0.0));
+				ky = n * kj[n_unimol+k] * weights[j] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 + (_y0 == 0.0));
+				dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, r1, n_species)] -= ky;
+				dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, r1, n_species)] += ky;
+				for (m = 0; m < n_species; ++m)
+				{
+					ky = - n * _ky[n_unimol+k] * yi[hmca_sym_id(r0, l, n_species)] * weights[j] / (_y0 * _y0 + (_y0 == 0.0));
+					dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, m, n_species)] -= ky;
+					dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, m, n_species)] += ky;
+				}
+
+				indices[0] = r0;
+				indices[1] = r1;
+				indices[2] = l;
+				n = (*nn) (indices, n_species_0);
+				// ky = (*nn) (indices, n_species_0) * _ky[n_unimol+k] * yi[hmca_sym_id(r1, l, n_species)] / (_y1 + (_y1 == 0.0));
+				ky = n * kj[n_unimol+k] * weights[j] * yi[hmca_sym_id(r1, l, n_species)] / (_y1 + (_y1 == 0.0));
+				dfij[hmca_sym_id(r1, l, n_species)][hmca_sym_id(r1, r0, n_species)] -= ky;
+				dfij[hmca_sym_id(p1, l, n_species)][hmca_sym_id(r1, r0, n_species)] += ky;
+				for (m = 0; m < n_species; ++m)
+				{
+					ky = - n * _ky[n_unimol+k] * yi[hmca_sym_id(r1, l, n_species)] * weights[j] / (_y1 * _y1 + (_y1 == 0.0));
+					dfij[hmca_sym_id(r1, l, n_species)][hmca_sym_id(r1, m, n_species)] -= ky;
+					dfij[hmca_sym_id(p1, l, n_species)][hmca_sym_id(r1, m, n_species)] += ky;
+				}
+			}
+		}
+
+		for (k = 0; k < n_species; ++k) for (l = 0; l < nn_species; ++l)
+			dfij[hmca_sym_id(k, k, n_species)][l] += dfij[hmca_sym_id(k, k, n_species)][l];
+
+		free(dfij);
+	}
+
+	free(_y);
+	free(_ky);
+
+	return;
+}
+
+void hmca_shpa_dfdk (
+		const double *y,
+		double *dfdk,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		)
+{
+	return;
+}
 
 
 // Machine Learning Moment Closure

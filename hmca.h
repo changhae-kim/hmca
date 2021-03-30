@@ -181,6 +181,41 @@ void hmca_hhpa_dfdk (
 		);
 
 
+// Symmetric Heterogeneous Pair Approximation
+
+#define hmca_shpa_nn_1x1 hmca_pa_nn_1x1
+
+#define hmca_shpa_nn_2x1 hmca_pa_nn_2x1
+
+void hmca_shpa_average (
+		const double *y,
+		double *_y, double *_ky,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights
+		);
+
+void hmca_shpa_func (
+		const double *y,
+		double *dydt,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		);
+
+void hmca_shpa_jac (
+		const double *y,
+		double *dfdy,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		);
+
+void hmca_shpa_dfdk (
+		const double *y,
+		double *dfdk,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+		const int *reactions, const double *rates, const double *weights, hmca_nn nn
+		);
+
+
 // Machine Learning Moment Closure
 
 void hmca_mlmc_func (

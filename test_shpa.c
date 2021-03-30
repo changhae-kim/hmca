@@ -41,27 +41,28 @@ int main (int argc, char* argv[])
 	double bound = 1.0;
 
 	int n_species = n_species_0+n_species_1;
+	int nn_species = n_species*(n_species+1)/2;
 	int n_react = n_unimol+n_bimol;
 
 	double *logk0 = (double*)malloc(n_react*sizeof(double));
 	double *dlogk = (double*)malloc(n_react*sizeof(double));
 	double *rates = (double*)malloc(mesh*n_react*sizeof(double));
 	double *weights = (double*)malloc(mesh*sizeof(double));
-	double *y = (double*)malloc(mesh*n_species*n_species*sizeof(double));
+	double *y = (double*)malloc(mesh*nn_species*sizeof(double));
 
 	double h = 1e-8;
 	double aerr, rerr;
-	double *dfdy = (double*)malloc(mesh*n_species*n_species*mesh*n_species*n_species*sizeof(double));
-	double *dydta = (double*)malloc(mesh*n_species*n_species*sizeof(double));
-	double *dydtb = (double*)malloc(mesh*n_species*n_species*sizeof(double));
-	double *dfdk = (double*)malloc(mesh*n_species*n_species*mesh*n_react*sizeof(double));
+	double *dfdy = (double*)malloc(mesh*nn_species*mesh*nn_species*sizeof(double));
+	double *dydta = (double*)malloc(mesh*nn_species*sizeof(double));
+	double *dydtb = (double*)malloc(mesh*nn_species*sizeof(double));
+	double *dfdk = (double*)malloc(mesh*nn_species*mesh*n_react*sizeof(double));
 	double *dkdlogk0 = (double*)malloc(mesh*n_react*sizeof(double));
 	double *dkddlogk = (double*)malloc(mesh*n_react*sizeof(double));
 	double *ka = (double*)malloc(mesh*n_react*sizeof(double));
 	double *kb = (double*)malloc(mesh*n_react*sizeof(double));
 	double *wt = (double*)malloc(mesh*sizeof(double));
-	double *dfdlogk0 = (double*)malloc(mesh*n_species*n_species*n_react*sizeof(double));
-	double *dfddlogk = (double*)malloc(mesh*n_species*n_species*n_react*sizeof(double));
+	double *dfdlogk0 = (double*)malloc(mesh*nn_species*n_react*sizeof(double));
+	double *dfddlogk = (double*)malloc(mesh*nn_species*n_react*sizeof(double));
 
 
 	// Random Number Generator
@@ -120,67 +121,65 @@ int main (int argc, char* argv[])
 
 	// Random Moments
 	for (i = 0; i < n_species; ++i) for (j = i; j < n_species; ++j)
-		y[n_species*i+j] = (rand()%p_zero > 0) * (double)(rand()%p_yvar+1)/p_yvar;
-	for (i = 0; i < n_species; ++i) for (j = 0; j < i; ++j)
-		y[n_species*i+j] = (y[n_species*j+i] > 0.0) * (double)(rand()%p_yvar+1)/p_yvar;
-	for (i = 1; i < mesh; ++i) for (j = 0; j < n_species*n_species; ++j)
-		y[n_species*n_species*i+j] = (y[j] > 0.0) * (double)(rand()%p_yvar+1)/p_yvar;
+		y[hmca_sym_id(i, j, n_species)] = (rand()%p_zero > 0) * (double)(rand()%p_yvar+1)/p_yvar;
+	for (i = 1; i < mesh; ++i) for (j = 0; j < nn_species; ++j)
+		y[nn_species*i+j] = (y[j] > 0.0) * (double)(rand()%p_yvar+1)/p_yvar;
 
 	printf("y =\n");
 	for (i = 0; i < mesh; ++i)
 	{
-		for (j = 0; j < n_species*n_species; ++j)
-			printf(" %+.2f", y[n_species*n_species*i+j]);
+		for (j = 0; j < nn_species; ++j)
+			printf(" %+.2f", y[nn_species*i+j]);
 		printf("\n");
 	}
 
 	// Function and Jacobian
-	hmca_hhpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hhpa_nn_2x1);
-	hmca_hhpa_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hhpa_nn_2x1);
+	hmca_shpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_shpa_nn_2x1);
+	hmca_shpa_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_shpa_nn_2x1);
 
 	printf("f =\n");
 	for (i = 0; i < mesh; ++i)
 	{
-		for (j = 0; j < n_species*n_species; ++j)
-			printf(" %+.6f", dydta[n_species*n_species*i+j]);
+		for (j = 0; j < nn_species; ++j)
+			printf(" %+.6f", dydta[nn_species*i+j]);
 		printf("\n");
 	}
 
 	printf("J =\n");
-	for (i = 0; i < mesh*n_species*n_species; ++i)
+	for (i = 0; i < mesh*nn_species; ++i)
 	{
-		for(j = 0; j < mesh*n_species*n_species; ++j)
-			printf(" %+.6f", dfdy[mesh*n_species*n_species*i+j]);
+		for(j = 0; j < mesh*nn_species; ++j)
+			printf(" %+.6f", dfdy[mesh*nn_species*i+j]);
 		printf("\n");
 	}
 
 	// Compare to Numerical Jacobian
 	printf("J_n - J =\n");
-	for (i = 0; i < mesh*n_species*n_species; ++i)
+	for (i = 0; i < mesh*nn_species; ++i)
 	{
 
 		if (y[i] > 0.0)
 		{
 			y[i] += h;
-			hmca_hhpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hhpa_nn_2x1);
+			hmca_shpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_shpa_nn_2x1);
 			y[i] -= 2.0*h;
-			hmca_hhpa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hhpa_nn_2x1);
+			hmca_shpa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_shpa_nn_2x1);
 			y[i] += h;
-			for(j = 0; j < mesh*n_species*n_species; ++j)
+			for(j = 0; j < mesh*nn_species; ++j)
 			{
-				aerr = (dydta[j]-dydtb[j])/(2.0*h) - dfdy[mesh*n_species*n_species*j+i];
+				aerr = (dydta[j]-dydtb[j])/(2.0*h) - dfdy[mesh*nn_species*j+i];
 				printf(" %+.6f", aerr);
 			}
 		}
 		else
 		{
 			y[i] += h;
-			hmca_hhpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hhpa_nn_2x1);
+			hmca_shpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_shpa_nn_2x1);
 			y[i] -= h;
-			hmca_hhpa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hhpa_nn_2x1);
-			for(j = 0; j < mesh*n_species*n_species; ++j)
+			hmca_shpa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_shpa_nn_2x1);
+			for(j = 0; j < mesh*nn_species; ++j)
 			{
-				aerr = (dydta[j]-dydtb[j])/h - dfdy[mesh*n_species*n_species*j+i];
+				aerr = (dydta[j]-dydtb[j])/h - dfdy[mesh*nn_species*j+i];
 				printf(" %+.6f", aerr);
 			}
 
@@ -189,17 +188,17 @@ int main (int argc, char* argv[])
 	}
 
 /*	// Derivative w.r.t. Rate Constants
-	hmca_hhpa_dfdk(y, dfdk, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hhpa_nn_2x1);
+	hmca_shpa_dfdk(y, dfdk, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_shpa_nn_2x1);
 
 	printf("dfdk_n - dfdk =\n");
 	for (i = 0; i < mesh*n_react; ++i)
 	{
 		rates[i] += h;
-		hmca_hhpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hhpa_nn_2x1);
+		hmca_shpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_shpa_nn_2x1);
 		rates[i] -= 2.0*h;
-		hmca_hhpa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hhpa_nn_2x1);
+		hmca_shpa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_shpa_nn_2x1);
 		rates[i] += h;
-		for(j = 0; j < mesh*n_species*n_species; ++j)
+		for(j = 0; j < mesh*nn_species; ++j)
 		{
 			aerr = (dydta[j]-dydtb[j])/(2.0*h) - dfdk[mesh*n_react*j+i];
 			printf(" %+.6f", aerr);
@@ -251,12 +250,12 @@ int main (int argc, char* argv[])
 		printf("\n");
 	}
 
-	memset(dfdlogk0, 0, mesh*n_species*n_species*n_react*sizeof(double));
-	for (i = 0; i < mesh*n_species*n_species; ++i) for (j = 0; j < mesh*n_react; ++j) for (k = 0; k < n_react; ++k)
+	memset(dfdlogk0, 0, mesh*nn_species*n_react*sizeof(double));
+	for (i = 0; i < mesh*nn_species; ++i) for (j = 0; j < mesh*n_react; ++j) for (k = 0; k < n_react; ++k)
 		dfdlogk0[n_react*i+k] += (j%n_react == k%n_react) * dfdk[mesh*n_react*i+j] * dkdlogk0[j];
 
-	memset(dfddlogk, 0, mesh*n_species*n_species*n_react*sizeof(double));
-	for (i = 0; i < mesh*n_species*n_species; ++i) for (j = 0; j < mesh*n_react; ++j) for (k = 0; k < n_react; ++k)
+	memset(dfddlogk, 0, mesh*nn_species*n_react*sizeof(double));
+	for (i = 0; i < mesh*nn_species; ++i) for (j = 0; j < mesh*n_react; ++j) for (k = 0; k < n_react; ++k)
 		dfddlogk[n_react*i+k] += (j%n_react == k%n_react) * dfdk[mesh*n_react*i+j] * dkddlogk[j];
 
 	printf("dfdlogk0_n - dfdlogk0 =\n");
@@ -264,12 +263,12 @@ int main (int argc, char* argv[])
 	{
 		logk0[i] += h;
 		hmca_lognorm_set(logk0, dlogk, ka, wt, n_unimol, n_bimol, mesh, bound);
-		hmca_hhpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, ka, weights, hmca_hhpa_nn_2x1);
+		hmca_shpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, ka, weights, hmca_shpa_nn_2x1);
 		logk0[i] -= 2.0*h;
 		hmca_lognorm_set(logk0, dlogk, kb, wt, n_unimol, n_bimol, mesh, bound);
-		hmca_hhpa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, kb, weights, hmca_hhpa_nn_2x1);
+		hmca_shpa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, kb, weights, hmca_shpa_nn_2x1);
 		logk0[i] += h;
-		for(j = 0; j < mesh*n_species*n_species; ++j)
+		for(j = 0; j < mesh*nn_species; ++j)
 		{
 			aerr = (dydta[j]-dydtb[j])/(2.0*h) - dfdlogk0[n_react*j+i];
 			printf(" %+.6f", aerr);
@@ -282,12 +281,12 @@ int main (int argc, char* argv[])
 	{
 		dlogk[i] += h;
 		hmca_lognorm_set(logk0, dlogk, ka, wt, n_unimol, n_bimol, mesh, bound);
-		hmca_hhpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, ka, weights, hmca_hhpa_nn_2x1);
+		hmca_shpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, ka, weights, hmca_shpa_nn_2x1);
 		dlogk[i] -= 2.0*h;
 		hmca_lognorm_set(logk0, dlogk, kb, wt, n_unimol, n_bimol, mesh, bound);
-		hmca_hhpa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, kb, weights, hmca_hhpa_nn_2x1);
+		hmca_shpa_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, kb, weights, hmca_shpa_nn_2x1);
 		dlogk[i] += h;
-		for(j = 0; j < mesh*n_species*n_species; ++j)
+		for(j = 0; j < mesh*nn_species; ++j)
 		{
 			aerr = (dydta[j]-dydtb[j])/(2.0*h) - dfddlogk[n_react*j+i];
 			printf(" %+.6f", aerr);
@@ -297,11 +296,11 @@ int main (int argc, char* argv[])
 
 /*	// Timing
 	t0 = clock();
-	for (i = 0; i < 5.0e+4; ++i)
-		hmca_hhpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_mf_nn_2x1);
+	for (i = 0; i < 6.5e+4; ++i)
+		hmca_shpa_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_mf_nn_2x1);
 	t1 = clock();
-	for (i = 0; i < 2.5e+3; ++i)
-		hmca_hhpa_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_mf_nn_2x1);
+	for (i = 0; i < 3.2e+3; ++i)
+		hmca_shpa_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_mf_nn_2x1);
 	t2 = clock();
 	printf("%f\n", (double)(t1-t0)/CLOCKS_PER_SEC);
 	printf("%f\n", (double)(t2-t1)/CLOCKS_PER_SEC);	*/
