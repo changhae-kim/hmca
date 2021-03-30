@@ -1,5 +1,7 @@
 #include "hmca.h"
 
+#include <stdio.h>
+
 
 // Shared Functions
 
