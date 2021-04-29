@@ -239,6 +239,8 @@ void hmca_mf_jac (
 	int indices[2];
 	double ky;
 
+	memset(dfdy, 0, n_species*n_species*sizeof(double));
+
 	for (i = 0; i < n_unimol; ++i)
 	{
 		r0 = reactions[2*i+0];
@@ -292,6 +294,8 @@ void hmca_mf_dfdk (
 	int r0, r1, p0, p1;
 	int indices[2];
 	double ky;
+
+	memset(dfdk, 0, (n_species_0+n_species_1)*n_react*sizeof(double));
 
 	for (i = 0; i < n_unimol; ++i)
 	{
@@ -1402,13 +1406,13 @@ void hmca_hhpa_dfdk (
 					dfij[n_species*p0+l][n_unimol+k] += ky;
 					// ky = (*nn) (indices, n_species_0) * _kyy[n_species*k+l] * yi[n_species*l+r0] / (_y[n_species*r0+l] + (_y[n_species*r0+l] == 0.0));
 
-				//	indices[0] = r0;
-				//	indices[1] = r1;
-				//	indices[2] = l;
-				//	ky = (*nn) (indices, n_species_0) * _ky[n_unimol*n_species+k] * yi[n_species*r1+r0] * yi[n_species*r1+l]
-				//		/ (_y[n_species*r0+r1] + (_y[n_species*r0+r1] == 0.0)) / (yi1 + (yi1 == 0.0));
-				//	ky = (*nn) (indices, n_species_0) * _ky[n_unimol*n_species+k] * _yy[n_species*k+l] * yi[n_species*l+r1]
-				//		/ (_y[n_species*r0+r1] + (_y[n_species*r0+r1] == 0.0)) / (_y[n_species*r1+l] + (_y[n_species*r1+l] == 0.0));
+					// indices[0] = r0;
+					// indices[1] = r1;
+					// indices[2] = l;
+					// ky = (*nn) (indices, n_species_0) * _ky[n_unimol*n_species+k] * yi[n_species*r1+r0] * yi[n_species*r1+l]
+					//	/ (_y[n_species*r0+r1] + (_y[n_species*r0+r1] == 0.0)) / (yi1 + (yi1 == 0.0));
+					// ky = (*nn) (indices, n_species_0) * _ky[n_unimol*n_species+k] * _yy[n_species*k+l] * yi[n_species*l+r1]
+					//	/ (_y[n_species*r0+r1] + (_y[n_species*r0+r1] == 0.0)) / (_y[n_species*r1+l] + (_y[n_species*r1+l] == 0.0));
 				}
 			}
 		} // end if (i == j)
@@ -1599,18 +1603,18 @@ void hmca_shpa_func (
 				fi[hmca_sym_id(r0, l, n_species)] -= ky;
 				fi[hmca_sym_id(p0, l, n_species)] += ky;
 
-				ny = 0.0;
-				indices[1] = r0;
-				indices[2] = l;
-				for (m = 0; m < n_species; ++m)
-				{
-					indices[0] = m;
-					ny += (*nn) (indices, n_species_0) * _y[hmca_sym_id(r0, m, n_species)];
-				}
+			//	ny = 0.0;
+			//	indices[1] = r0;
+			//	indices[2] = l;
+			//	for (m = 0; m < n_species; ++m)
+			//	{
+			//		indices[0] = m;
+			//		ny += (*nn) (indices, n_species_0) * _y[hmca_sym_id(r0, m, n_species)];
+			//	}
 
-				ky = ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
-				fi[hmca_sym_id(r0, l, n_species)] -= ky;
-				fi[hmca_sym_id(p0, l, n_species)] += ky;
+			//	ky = ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
+			//	fi[hmca_sym_id(r0, l, n_species)] -= ky;
+			//	fi[hmca_sym_id(p0, l, n_species)] += ky;
 			}
 		}
 
@@ -1720,20 +1724,20 @@ void hmca_shpa_jac (
 					dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, l, n_species)] -= ki[k];
 					dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, l, n_species)] += ki[k];
 
-					ny = 0.0;
-					indices[1] = r0;
-					indices[2] = l;
-					for (m = 0; m < n_species; ++m)
-					{
-						indices[0] = m;
-						ny += (*nn) (indices, n_species_0) * _y[hmca_sym_id(r0, m, n_species)];
-					}
+				//	ny = 0.0;
+				//	indices[1] = r0;
+				//	indices[2] = l;
+				//	for (m = 0; m < n_species; ++m)
+				//	{
+				//		indices[0] = m;
+				//		ny += (*nn) (indices, n_species_0) * _y[hmca_sym_id(r0, m, n_species)];
+				//	}
 
-					// ky = ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
-					indices[0] = l;
-					ky = (ny * _ky[k] + (_y0 == 0.0) * (*nn) (indices, n_species_0) * kj[k]) / (_y0 * _y0 + (_y0 == 0.0));
-					dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, l, n_species)] -= ky;
-					dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, l, n_species)] += ky;
+				//	// ky = ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
+				//	indices[0] = l;
+				//	ky = (ny * _ky[k] + (_y0 == 0.0) * (*nn) (indices, n_species_0) * kj[k]) / (_y0 * _y0 + (_y0 == 0.0));
+				//	dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, l, n_species)] -= ky;
+				//	dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, l, n_species)] += ky;
 				}
 			}
 
@@ -1777,47 +1781,47 @@ void hmca_shpa_jac (
 			}
 		} // end if (i == j)
 
-		for (k = 0; k < n_unimol; ++k)
-		{
-			r0 = reactions[2*k+0];
-			p0 = reactions[2*k+1];
+	//	for (k = 0; k < n_unimol; ++k)
+	//	{
+	//		r0 = reactions[2*k+0];
+	//		p0 = reactions[2*k+1];
 
-			_y0 = 0.0;
-			for (l = 0; l < n_species; ++l)
-			{
-				_y0 += _y[hmca_sym_id(r0, l, n_species)];
-			}
+	//		_y0 = 0.0;
+	//		for (l = 0; l < n_species; ++l)
+	//		{
+	//			_y0 += _y[hmca_sym_id(r0, l, n_species)];
+	//		}
 
-			for (l = 0; l < n_species; ++l)
-			{
-				// ky = ki[k] * yi[hmca_sym_id(r0, l, n_species)];
+	//		for (l = 0; l < n_species; ++l)
+	//		{
+	//			// ky = ki[k] * yi[hmca_sym_id(r0, l, n_species)];
 
-				ny = 0.0;
-				indices[1] = r0;
-				indices[2] = l;
-				for (m = 0; m < n_species; ++m)
-				{
-					indices[0] = m;
-					ny += (*nn) (indices, n_species_0) * _y[hmca_sym_id(r0, m, n_species)];
-				}
+	//			ny = 0.0;
+	//			indices[1] = r0;
+	//			indices[2] = l;
+	//			for (m = 0; m < n_species; ++m)
+	//			{
+	//				indices[0] = m;
+	//				ny += (*nn) (indices, n_species_0) * _y[hmca_sym_id(r0, m, n_species)];
+	//			}
 
-				// ky = ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
-				ky = ny * kj[k] * weights[j] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0))
-					- 2.0 * ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] * weights[j] / (_y0 * _y0 * _y0 + (_y0 == 0.0));
-				for (m = 0; m < n_species; ++m)
-				{
-					dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, m, n_species)] -= ky;
-					dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, m, n_species)] += ky;
-				}
-				for (m = 0; m < n_species; ++m)
-				{
-					indices[0] = m;
-					ky = (*nn) (indices, n_species_0) * weights[j] * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
-					dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, m, n_species)] -= ky;
-					dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, m, n_species)] += ky;
-				}
-			}
-		}
+	//			// ky = ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
+	//			ky = ny * kj[k] * weights[j] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0))
+	//				- 2.0 * ny * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] * weights[j] / (_y0 * _y0 * _y0 + (_y0 == 0.0));
+	//			for (m = 0; m < n_species; ++m)
+	//			{
+	//				dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, m, n_species)] -= ky;
+	//				dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, m, n_species)] += ky;
+	//			}
+	//			for (m = 0; m < n_species; ++m)
+	//			{
+	//				indices[0] = m;
+	//				ky = (*nn) (indices, n_species_0) * weights[j] * _ky[k] * yi[hmca_sym_id(r0, l, n_species)] / (_y0 * _y0 + (_y0 == 0.0));
+	//				dfij[hmca_sym_id(r0, l, n_species)][hmca_sym_id(r0, m, n_species)] -= ky;
+	//				dfij[hmca_sym_id(p0, l, n_species)][hmca_sym_id(r0, m, n_species)] += ky;
+	//			}
+	//		}
+	//	}
 
 		for (k = 0; k < n_bimol; ++k)
 		{
@@ -1874,7 +1878,7 @@ void hmca_shpa_jac (
 			dfij[hmca_sym_id(k, k, n_species)][l] += dfij[hmca_sym_id(k, k, n_species)][l];
 
 		free(dfij);
-	}
+	} // end for (i) for (j)
 
 	free(_y);
 	free(_ky);
@@ -2062,17 +2066,15 @@ void hmca_mlmc_dfdz (
 
 	memset(dfdz, 0, nn_species*nnn_species*sizeof(double));
 
-//	for (i = 0; i < n_unimol; ++i)
-//	{
-//		r0 = reactions[2*i+0];
-//		p0 = reactions[2*i+1];
-//		for (j = 0; j < n_species; ++j)
-//		{
-//			ky = rates[i] * y[hmca_sym_id(r0, j, n_species)];
-//			dydt[hmca_sym_id(r0, j, n_species)] -= ky;
-//			dydt[hmca_sym_id(p0, j, n_species)] += ky;
-//		}
-//	}
+	// for (i = 0; i < n_unimol; ++i)
+	// {
+	//	r0 = reactions[2*i+0];
+	//	p0 = reactions[2*i+1];
+	//	for (j = 0; j < n_species; ++j)
+	//	{
+	//		ky = rates[i] * y[hmca_sym_id(r0, j, n_species)];
+	//	}
+	// }
 
 	for (i = 0; i < n_bimol; ++i)
 	{
@@ -2082,8 +2084,6 @@ void hmca_mlmc_dfdz (
 		p1 = reactions[2*n_unimol+4*i+3];
 
 		// ky = rates[n_unimol+i] * y[hmca_sym_id(r0, r1, n_species)];
-		// dydt[hmca_sym_id(r0, r1, n_species)] -= ky;
-		// dydt[hmca_sym_id(p0, p1, n_species)] += ky;
 
 		for (j = 0; j < n_species; ++j)
 		{
@@ -2186,7 +2186,7 @@ void hmca_spa_func (
 			dydt[r1] -= ky;
 			dydt[p1] += ky;
 		}
-	}
+	} // end for (i)
 
 	for (i = 0; i < n_pairs; ++i)
 	{
@@ -2294,8 +2294,8 @@ void hmca_spa_func (
 					}
 				}
 			}
-		}
-	}
+		} // end for (j)
+	} // end for (i)
 
 	return;
 }
