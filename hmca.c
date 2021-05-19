@@ -172,6 +172,86 @@ void hmca_logexp_dkdx (
 	return;
 }
 
+void hmca_logsech_set (
+		const double *logk0, const double *dlogk,
+		double *rates, double *weights,
+		int n_unimol, int n_bimol, int mesh, double bound
+		)
+{
+	int n_react = n_unimol+n_bimol;
+
+	int i, j;
+	double x, dx;
+
+	// midpoint rule
+//	dx = 2.0 * bound / (mesh + (mesh == 0));
+//	for (i = 0; i < mesh; ++i)
+//	{
+//		x = (i+0.5)*dx-bound;
+//		for (j = 0; j < n_react; ++j)
+//			rates[n_react*i+j] = exp(logk[j]+x*dlogk[j]);
+//		weights[i] = (2.0/M_PI) / (exp(+x)+exp(-x)) * dx;
+//	}
+
+	// trapezoid rule
+	dx = 2.0 * bound / (mesh-1 + (mesh == 1));
+	for (i = 0; i < mesh; ++i)
+	{
+		x = i*dx-bound;
+		for (j = 0; j < n_react; ++j)
+			rates[n_react*i+j] = exp(logk0[j]+x*dlogk[j]);
+		weights[i] = (1 + (i > 0 && i+1 < mesh)) / 2.0 * (2.0/M_PI) / (exp(+x)+exp(-x)) * dx;
+	}
+
+	dx = 0.0;
+	for (i = 0; i < mesh; ++i)
+		dx += weights[i];
+	for (i = 0; i < mesh; ++i)
+		weights[i] /= dx;
+
+	return;
+}
+
+void hmca_logpoisson2_set (
+		const double *logk0, const double *dlogk,
+		double *rates, double *weights,
+		int n_unimol, int n_bimol, int mesh, double bound
+		)
+{
+	int n_react = n_unimol+n_bimol;
+
+	int i, j;
+	double x, dx;
+
+	// midpoint rule
+//	dx = bound / (mesh + (mesh == 0));
+//	for (i = 0; i < mesh; ++i)
+//	{
+//		x = (i+0.5)*dx;
+//		for (j = 0; j < n_react; ++j)
+//			rates[n_react*i+j] = exp(logk[j]-x*dlogk[j]);
+//		weights[i] = x * x * exp(-x) * dx;
+//	}
+
+	// Simpson's rule
+	dx = bound / (mesh-1 + (mesh == 1));
+	for (i = 0; i < mesh; ++i)
+	{
+		x = i*dx;
+		for (j = 0; j < n_react; ++j)
+			rates[n_react*i+j] = exp(logk0[j]-x*dlogk[j]);
+		weights[i] = (1 + (i > 0 && i+1 < mesh) * (1 + (i%2 == 1) * 2)) / 3.0 * x * x * exp(-x) * dx;
+	}
+
+	dx = 0.0;
+	for (i = 0; i < mesh; ++i)
+		dx += weights[i];
+	for (i = 0; i < mesh; ++i)
+		weights[i] /= dx;
+
+	return;
+}
+
 
 // Mean-Field Approximation
 

@@ -42,6 +42,18 @@ void hmca_logexp_dkdx (
 		int n_unimol, int n_bimol, int mesh, double bound
 		);
 
+void hmca_logsech_set (
+		const double *logk0, const double *dlogk,
+		double *rates, double *weights,
+		int n_unimol, int n_bimol, int mesh, double bound
+		);
+
+void hmca_logpoisson2_set (
+		const double *logk0, const double *dlogk,
+		double *rates, double *weights,
+		int n_unimol, int n_bimol, int mesh, double bound
+		);
+
 
 // Mean-Field Approximation
 
