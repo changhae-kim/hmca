@@ -20,7 +20,7 @@
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
         );
 
-## Compilation
+## Examples
 
 To compile test_pa.c
 
