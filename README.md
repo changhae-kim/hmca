@@ -1,6 +1,6 @@
 # Heterogeneous Moment Closure Approximation (HMCA)
 
-User Guide
+Uniform Methods
 
     hmca_mf_func (
         const double *y,
@@ -9,6 +9,7 @@ User Guide
         const int *reactions, const double *rates, hmca_nn nn
         );
 
+    y = 
 
 To compile test_pa.c
 
