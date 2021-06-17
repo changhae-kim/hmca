@@ -1,6 +1,16 @@
 # Heterogeneous Moment Closure Approximation (HMCA)
 
-## Uniform Methods
+## Common Parameters
+
+n_species_0 = (1x1 lattice) number of species, (2x1 lattice) number of species on the first type of sites
+n_species_1 = (1x1 lattice) set to zero, (2x1 lattice) number of species on the second type of sites
+n_unimol = number of unimolecular reactions
+n_bimol = number of bimolecular reactions
+reactions = 
+rates =
+nn =
+
+## Uniform Mean-Field
 
     hmca_mf_func (
         const double *y,
@@ -9,9 +19,7 @@
         const int *reactions, const double *rates, hmca_nn nn
         )
 
-
-
-## Heterogeneous Methods
+## Half Heterogeneous Pair Approximation
 
     hmca_hhpa_func (
         const double *y,
