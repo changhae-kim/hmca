@@ -9,7 +9,7 @@ This code defines a number of functions that give the right-hand sides of the ki
 There are some parameters that the functions require in common.
 
     int n_species_0 = number of species on the first type of sites
-    int n_species_1 = number of species on the second type of sites (= 0 on a 1x1 lattice)
+    int n_species_1 = number of species on the second type of sites, 0 on a 1x1 lattice
     int n_unimol    = number of unimolecular reactions
     int n_bimol     = number of bimolecular reactions
     int *reactions  = array of the 2*n_unimol+4*n_bimol reactants and products
