@@ -2,11 +2,11 @@
 
 ## Overview
 
-This code defines a number of functions that give the right-hand side of the kinetic equations in various methods: MF, PA, HMF, HHPA, SHPA, SPA, and MLMC.
+This code defines a number of functions that give the right-hand sides of the kinetic equations in various methods: MF, PA, HMF, HHPA, SHPA, SPA, and MLMC.
 
 ## Common Parameters
 
-There are a few parameters that the functions require in common.
+There are some parameters that the functions require in common.
 
     int n_species_0 = number of species on the first type of sites
     int n_species_1 = number of species on the second type of sites (= 0 on a 1x1 lattice)
