@@ -16,14 +16,14 @@ There are some parameters that the functions require in common.
     double *rates   = array of the n_unimol+n_bimol rate constants
     hmca_nn nn      = function returning the number of nearest neighbors
 
-There are two parameters on the number of species, because 2x1 or 2x2 lattices have two types of sites.
+Two parameters are needed to give the number of species, because 2x1 or 2x2 lattices have two types of sites.
 
 Assign each of the `n_species_0` species to an integer index between `0` and `n_species_0-1`,
 and each of the `n_species_1` species to an integer index between `n_species_0` and `n_species_0+n_species_1-1`.
 
 List the unimolecular reactions and then the bimolecular reactions - i.e. reactant, product, reactant, product, . . . reactant 1, reactant 2, product 1, product 2, . . .
 
-The number of nearest neighbors is a function, because it can depend on the spatial arrangement of the sites in question.
+The number of nearest neighbors is given as a function, because it can depend on the spatial arrangement of the sites in question.
 
     typedef double (*hmca_nn) (const int *indices, int n_species_0);
 
