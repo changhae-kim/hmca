@@ -33,6 +33,8 @@ There are pre-defined functions.
     double hmca_mf_nn_2x1 (const int *indices, int n_species_0)
     double hmca_pa_nn_1x1 (const int *indices, int n_species_0)
     double hmca_pa_nn_2x1 (const int *indices, int n_species_0)
+    double hmca_spa_nn_1x1 (const int *indices, int n_species_0)
+    double hmca_spa_nn_2x1 (const int *indices, int n_species_0)
 
 ### Example
 
@@ -54,23 +56,74 @@ The code would look like:
 
 And use `hmca_mf_nn_1x1` or `hmca_pa_nn_1x1`.
 
-## Uniform Mean-Field
+## Common Parameters in Heterogeneous Methods
 
-    hmca_mf_func (
+There are some more parameters that the heterogeneous methods require in common,
+and one that has a different definition.
+
+    int mesh        = number of points to sample in the rate constant space
+    double *rates   = array of the mesh*(n_unimol+n_bimol) rate constants
+    double *weights = array of the mesh weights
+
+## Mean-Field Approximation
+
+    void hmca_mf_func (
         const double *y,
         double *dydt,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol,
         const int *reactions, const double *rates, hmca_nn nn
         )
 
+The parameters are as described above.
+
+    double *y    = input,  coverages of n_species_0+n_species_1 species
+    double *dydt = output, rates
+
+## Heterogeneous Mean-Field Approximation
+
+    void hmca_hmf_func (
+        const double *y,
+        double *dydt,
+        int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
+        const int *reactions, const double *rates, const double *weights, hmca_nn nn
+        );
+
+The parameters are as described above.
+
+    double *y    = input,  coverages of mesh*(n_species_0+n_species_1) species
+    double *dydt = output, rates
+
+## Pair Approximation
+
+    void hmca_pa_func (
+        const double *y,
+        double *dydt,
+        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+        const int *reactions, const double *rates, hmca_nn nn
+        )
+
+The parameters are as described above.
+
+    double *y    = input,  coverages of n_species*(n_species+1)/2 pairs, n_species = n_species_0+n_species_1
+    double *dydt = output, rates
+    
+Due to the symmetry, there are only `n_species*(n_species+1)/2` distinct pairs.
+
 ## Half Heterogeneous Pair Approximation
 
-    hmca_hhpa_func (
+    void hmca_hhpa_func (
         const double *y,
         double *dydt,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
         )
+
+The parameters are as described above.
+
+    double *y    = input,  coverages of mesh*n_species*n_species pairs, n_species = n_species_0+n_species_1
+    double *dydt = output, rates
+
+Due to the broken symmetry, there are `n_species*n_species` distinct pairs per `mesh` points.
 
 ## Examples
 
