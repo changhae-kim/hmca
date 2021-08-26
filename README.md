@@ -23,7 +23,7 @@ and each of the `n_species_1` species to an integer index between `n_species_0` 
 
 List the unimolecular reactions and then the bimolecular reactions - i.e. reactant, product, reactant, product, . . . reactant 1, reactant 2, product 1, product 2, . . .
 
-The number of nearest neighbors is given as a function, because it can depend on the spatial arrangement of the sites in question.
+The number of nearest neighbors must be given as a function, because it can depend on the spatial arrangement of the sites in question.
 
     typedef double (*hmca_nn) (const int *indices, int n_species_0);
 
