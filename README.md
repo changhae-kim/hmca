@@ -2,19 +2,51 @@
 
 ## Common Parameters
 
-int n_species_0 = (1x1 lattice) number of species, (2x1 lattice) number of species on the first type of sites
+    int n_species_0 = number of species on the first type of sites
+    int n_species_1 = number of species on the second type of sites (= 0 on a 1x1 lattice)
+    int n_unimol    = number of unimolecular reactions
+    int n_bimol     = number of bimolecular reactions
+    int *reactions  = array of the 2*n_unimol+4*n_bimol reactants and products
+    double *rates   = array of the n_unimol+n_bimol rate constants
+    hmca_nn nn      = function returning the number of nearest neighbors
 
-int n_species_1 = (1x1 lattice) zero, (2x1 lattice) number of species on the second type of sites
+There are two parameters on the number of species, because 2x1 or 2x2 lattices have two types of sites.
 
-int n_unimol = number of unimolecular reactions
+Assign each of the `n_species_0` species to an integer index between `0` and `n_species_0-1`,
+and each of the `n_species_1` species to an integer index between `n_species_0` and `n_species_0+n_species_1-1`.
 
-int n_bimol = number of bimolecular reactions
+List the unimolecular reactions and then the bimolecular reactions - i.e. reactant, product, reactant, product, . . . reactant 1, reactant 2, product 1, product 2, . . .
 
-int *reactions = 
+The number of nearest neighbors is a function, because it can depend on the spatial arrangement of the sites in question.
 
-double *rates =
+    typedef double (*hmca_nn) (const int *indices, int n_species_0);
 
-nn =
+There are pre-defined functions.
+
+    double hmca_mf_nn_1x1 (const int *indices, int n_species_0)
+    double hmca_mf_nn_2x1 (const int *indices, int n_species_0)
+    double hmca_pa_nn_1x1 (const int *indices, int n_species_0)
+    double hmca_pa_nn_2x1 (const int *indices, int n_species_0)
+
+### Example
+
+Consider the Langmuir-Hinshelwood mechanism:
+
+        O --> A
+        O --> B
+    A + B --> O + O
+
+The code would look like:
+
+    enum {O, A, B};
+    int n_species_0 = 3
+    int n_species_1 = 0
+    int n_unimol    = 2
+    int n_bimol     = 1
+    int reactions[] = {O,A, O,B, A,B,O,O};
+    double rates[]  = {1.0, 1.0, 10.0};
+
+And use `hmca_mf_nn_1x1` or `hmca_pa_nn_1x1`.
 
 ## Uniform Mean-Field
 
