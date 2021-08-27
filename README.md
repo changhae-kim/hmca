@@ -40,9 +40,9 @@ There are pre-defined functions.
 
 Consider the Langmuir-Hinshelwood mechanism:
 
-        O --> A
-        O --> B
-    A + B --> O + O
+        O --> A        k1 = 1.0
+        O --> B        k2 = 1.0
+    A + B --> O + O    k3 = 10.0
 
 The code would look like:
 
