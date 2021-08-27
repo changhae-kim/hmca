@@ -25,7 +25,7 @@ List the unimolecular reactions and then the bimolecular reactions - i.e. reacta
 
 The number of nearest neighbors must be given as a function, because it can depend on the spatial arrangement of the sites in question.
 
-    typedef double (*hmca_nn) (const int *indices, int n_species_0);
+    double (*hmca_nn) (const int *indices, int n_species_0)
 
 There are pre-defined functions.
 
@@ -47,10 +47,10 @@ Consider the Langmuir-Hinshelwood mechanism:
 The code would look like:
 
     enum {O, A, B};
-    int n_species_0 = 3
-    int n_species_1 = 0
-    int n_unimol    = 2
-    int n_bimol     = 1
+    int n_species_0 = 3;
+    int n_species_1 = 0;
+    int n_unimol    = 2;
+    int n_bimol     = 1;
     int reactions[] = {O,A, O,B, A,B,O,O};
     double rates[]  = {1.0, 1.0, 10.0};
 
