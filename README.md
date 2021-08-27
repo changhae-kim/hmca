@@ -274,4 +274,4 @@ Most of the parameters are as described above.
     double *dydt   = output, right hand sides of the kinetic equations
     double *dfdy   = output, Jacobian of the kinetic equations
     
-List the indices of each pair - i.e. occupant 1 of pair 1, occupant 2 of pair 1, occupant 1 of pair 2, occupant 2 of pair 2, . . .
+List the occupants of each pair - i.e. occupant 1 of pair 1, occupant 2 of pair 1, occupant 1 of pair 2, occupant 2 of pair 2, . . .
