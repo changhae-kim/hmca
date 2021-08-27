@@ -4,6 +4,12 @@
 
 This code defines a number of functions that give the right-hand sides of the kinetic equations in various methods: MF, PA, HMF, HHPA, SHPA, SPA, and MLMC.
 
+### Example
+
+To compile `test_pa.c`, run
+
+    gcc test_pa.c hmca.c -lm
+
 ## Common Parameters
 
 There are some parameters that the functions require in common.
@@ -191,9 +197,3 @@ Most of the parameters are as described above.
     double *dydt = output, rates
 
 Due to the broken symmetry, there are `n_species*n_species` distinct pairs per each of the `mesh` points.
-
-## Examples
-
-To compile test_pa.c
-
-    gcc test_pa.c hmca.c -lm
