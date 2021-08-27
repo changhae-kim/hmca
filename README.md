@@ -31,16 +31,16 @@ List the unimolecular reactions and then the bimolecular reactions - i.e. reacta
 
 The number of nearest neighbors must be given as a function, because it can depend on the spatial arrangement of the sites in question.
 
-    double (*hmca_nn) (const int *indices, int n_species_0)
+    typedef double (*hmca_nn) (const int *indices, int n_species_0);
 
 There are pre-defined functions.
 
-    double hmca_mf_nn_1x1 (const int *indices, int n_species_0)
-    double hmca_mf_nn_2x1 (const int *indices, int n_species_0)
-    double hmca_pa_nn_1x1 (const int *indices, int n_species_0)
-    double hmca_pa_nn_2x1 (const int *indices, int n_species_0)
-    double hmca_spa_nn_1x1 (const int *indices, int n_species_0)
-    double hmca_spa_nn_2x1 (const int *indices, int n_species_0)
+    double hmca_mf_nn_1x1 (const int *indices, int n_species_0);
+    double hmca_mf_nn_2x1 (const int *indices, int n_species_0);
+    double hmca_pa_nn_1x1 (const int *indices, int n_species_0);
+    double hmca_pa_nn_2x1 (const int *indices, int n_species_0);
+    double hmca_spa_nn_1x1 (const int *indices, int n_species_0);
+    double hmca_spa_nn_2x1 (const int *indices, int n_species_0);
 
 ### Example
 
@@ -145,13 +145,13 @@ The code would look like:
         double *dydt,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol,
         const int *reactions, const double *rates, hmca_nn nn
-        )
+        );
     void hmca_mf_jac (
         const double *y,
         double *dfdy,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol,
         const int *reactions, const double *rates, hmca_nn nn
-        )
+        );
 
 Most of the parameters are as described above.
 
@@ -166,13 +166,13 @@ Most of the parameters are as described above.
         double *dydt,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
-        )
+        );
     void hmca_hmf_jac (
         const double *y,
         double *dfdy,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
-        )
+        );
 
 Most of the parameters are as described above.
 
@@ -187,13 +187,13 @@ Most of the parameters are as described above.
         double *dydt,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol,
         const int *reactions, const double *rates, hmca_nn nn
-        )
+        );
     void hmca_pa_jac (
         const double *y,
         double *dfdy,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol,
         const int *reactions, const double *rates, hmca_nn nn
-        )
+        );
 
 Most of the parameters are as described above.
 
@@ -210,13 +210,13 @@ Due to the symmetry, there are only `n_species*(n_species+1)/2` distinct pairs.
         double *dydt,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
-        )
+        );
     void hmca_hhpa_jac (
         const double *y,
         double *dfdy,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
-        )
+        );
 
 Most of the parameters are as described above.
 
@@ -234,13 +234,13 @@ Due to the broken symmetry, there are `n_species*n_species` distinct pairs per e
         double *dydt,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
-        )
+        );
     void hmca_shpa_jac (
         const double *y,
         double *dfdy,
         int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
-        )
+        );
 
 Most of the parameters are as described above.
 
@@ -258,13 +258,13 @@ Due to the symmetry, there are `n_species*(n_species+1)/2` distinct pairs per ea
         double *dydt,
         int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
         const int *pairs, const int *reactions, const double *rates, hmca_nn nn
-        )
+        );
     void hmca_spa_jac (
         const double *y,
         double *dfdy,
         int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
         const int *pairs, const int *reactions, const double *rates, hmca_nn nn
-        )
+        );
 
 Most of the parameters are as described above.
 
