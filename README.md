@@ -52,7 +52,7 @@ Consider the Langmuir-Hinshelwood mechanism:
 
 The code would look like:
 
-    enum {O, A, B};
+    enum species {O, A, B};
     int n_species_0 = 3;
     int n_species_1 = 0;
     int n_unimol    = 2;
