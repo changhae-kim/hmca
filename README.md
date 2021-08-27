@@ -14,13 +14,13 @@ To compile `test_pa.c`, run:
 
 There are some parameters that the functions require in common.
 
-    int n_species_0 = number of species on the first type of sites
-    int n_species_1 = number of species on the second type of sites, 0 on a 1x1 lattice
-    int n_unimol    = number of unimolecular reactions
-    int n_bimol     = number of bimolecular reactions
-    int *reactions  = array of the 2*n_unimol+4*n_bimol reactants and products
-    double *rates   = array of the n_unimol+n_bimol rate constants
-    hmca_nn nn      = function returning the number of nearest neighbors
+    int n_species_0 = param, number of species on the first type of sites
+    int n_species_1 = param, number of species on the second type of sites, 0 on a 1x1 lattice
+    int n_unimol    = param, number of unimolecular reactions
+    int n_bimol     = param, number of bimolecular reactions
+    int *reactions  = param, array of the 2*n_unimol+4*n_bimol reactants and products
+    double *rates   = param, array of the n_unimol+n_bimol rate constants
+    hmca_nn nn      = param, function returning the number of nearest neighbors
 
 Two parameters are needed to give the number of species, because 2x1 or 2x2 lattices have two types of sites.
 
@@ -75,9 +75,9 @@ The code would look like:
 There are some more parameters that the heterogeneous methods require in common,
 and one that has a different definition.
 
-    int mesh        = number of points to sample in the rate constant space
-    double *rates   = array of the mesh*(n_unimol+n_bimol) rate constants
-    double *weights = array of the mesh weights
+    int mesh        = param, number of points to sample in the rate constant space
+    double *rates   = param, array of the mesh*(n_unimol+n_bimol) rate constants
+    double *weights = param, array of the mesh weights
 
 There are pre-defined functions to set `rates` and `weights` using typical distributions:
 
@@ -268,10 +268,10 @@ Due to the symmetry, there are `n_species*(n_species+1)/2` distinct pairs per ea
 
 Most of the parameters are as described above.
 
+    double n_pairs = param,  number of pairs to consider
+    double *pairs  = param,  array of 2*n_pairs indices
     double *y      = input,  coverages of n_species_0+n_species_1 species and n_pairs pairs
     double *dydt   = output, right hand sides of the kinetic equations
     double *dfdy   = output, Jacobian of the kinetic equations
-    double n_pairs = param,  number of pairs to consider
-    double *pairs  = param,  array of 2*n_pairs indices
     
 List the indices of each pair - i.e. occupant 1 of pair 1, occupant 2 of pair 1, occupant 1 of pair 2, occupant 2 of pair 2, . . .
