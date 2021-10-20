@@ -48,6 +48,75 @@ If you want to write your own function, then note that the occupation pattern is
 
 For SPA, `hmca_spa_func` and `hmca_spa_jac` set the third index to `-1` when trying to get the nearest neighbors of a site, and it is a non-negative integer index when trying to get the nearest neighbors of a pair.
 
+### Mean-Field Approximation
+
+    void hmca_mf_func (
+        const double *y,
+        double *dydt,
+        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+        const int *reactions, const double *rates, hmca_nn nn
+        );
+    void hmca_mf_jac (
+        const double *y,
+        double *dfdy,
+        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+        const int *reactions, const double *rates, hmca_nn nn
+        );
+
+Most of the parameters are as described above.
+
+    double *y    = input,  coverages of n_species_0+n_species_1 species
+    double *dydt = output, right hand sides of the kinetic equations
+    double *dfdy = output, Jacobian of the kinetic equations
+
+### Pair Approximation
+
+    void hmca_pa_func (
+        const double *y,
+        double *dydt,
+        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+        const int *reactions, const double *rates, hmca_nn nn
+        );
+    void hmca_pa_jac (
+        const double *y,
+        double *dfdy,
+        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+        const int *reactions, const double *rates, hmca_nn nn
+        );
+
+Most of the parameters are as described above.
+
+    double *y    = input,  coverages of n_species*(n_species+1)/2 pairs, n_species = n_species_0+n_species_1
+    double *dydt = output, right hand sides of the kinetic equations
+    double *dfdy = output, Jacobian of the kinetic equations
+    
+Due to the symmetry, there are only `n_species*(n_species+1)/2` distinct pairs.
+
+### Select Pair Approximation
+
+    void hmca_spa_func (
+        const double *y,
+        double *dydt,
+        int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
+        const int *pairs, const int *reactions, const double *rates, hmca_nn nn
+        );
+    void hmca_spa_jac (
+        const double *y,
+        double *dfdy,
+        int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
+        const int *pairs, const int *reactions, const double *rates, hmca_nn nn
+        );
+
+Most of the parameters are as described above.
+
+    double n_pairs = param,  number of pairs to consider
+    double *pairs  = param,  array of 2*n_pairs indices
+    double *y      = input,  coverages of n_species_0+n_species_1 species and n_pairs pairs
+    double *dydt   = output, right hand sides of the kinetic equations
+    double *dfdy   = output, Jacobian of the kinetic equations
+    
+List the occupants of each pair - i.e. occupant 1, occupant 2, occupant 1, occupant 2, . . .
+
 ### Example
 
 Consider the Langmuir-Hinshelwood mechanism:
@@ -146,29 +215,6 @@ The code would look like:
         n_unimol, n_bimol, mesh, bound
         );
 
-## Functions and Jacobians
-
-### Mean-Field Approximation
-
-    void hmca_mf_func (
-        const double *y,
-        double *dydt,
-        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-        const int *reactions, const double *rates, hmca_nn nn
-        );
-    void hmca_mf_jac (
-        const double *y,
-        double *dfdy,
-        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-        const int *reactions, const double *rates, hmca_nn nn
-        );
-
-Most of the parameters are as described above.
-
-    double *y    = input,  coverages of n_species_0+n_species_1 species
-    double *dydt = output, right hand sides of the kinetic equations
-    double *dfdy = output, Jacobian of the kinetic equations
-
 ### Heterogeneous Mean-Field Approximation
 
     void hmca_hmf_func (
@@ -189,29 +235,6 @@ Most of the parameters are as described above.
     double *y    = input,  coverages of mesh*(n_species_0+n_species_1) species
     double *dydt = output, right hand sides of the kinetic equations
     double *dfdy = output, Jacobian of the kinetic equations
-
-### Pair Approximation
-
-    void hmca_pa_func (
-        const double *y,
-        double *dydt,
-        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-        const int *reactions, const double *rates, hmca_nn nn
-        );
-    void hmca_pa_jac (
-        const double *y,
-        double *dfdy,
-        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-        const int *reactions, const double *rates, hmca_nn nn
-        );
-
-Most of the parameters are as described above.
-
-    double *y    = input,  coverages of n_species*(n_species+1)/2 pairs, n_species = n_species_0+n_species_1
-    double *dydt = output, right hand sides of the kinetic equations
-    double *dfdy = output, Jacobian of the kinetic equations
-    
-Due to the symmetry, there are only `n_species*(n_species+1)/2` distinct pairs.
 
 ### Half Heterogeneous Pair Approximation
 
@@ -236,7 +259,6 @@ Most of the parameters are as described above.
 
 Due to the broken symmetry, there are `n_species*n_species` distinct pairs per each of the `mesh` points.
 
-
 ### Symmetric Heterogeneous Pair Approximation
 
     void hmca_shpa_func (
@@ -259,29 +281,3 @@ Most of the parameters are as described above.
     double *dfdy = output, Jacobian of the kinetic equations
 
 Due to the symmetry, there are `n_species*(n_species+1)/2` distinct pairs per each of the `mesh` points.
-
-
-### Select Pair Approximation
-
-    void hmca_spa_func (
-        const double *y,
-        double *dydt,
-        int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
-        const int *pairs, const int *reactions, const double *rates, hmca_nn nn
-        );
-    void hmca_spa_jac (
-        const double *y,
-        double *dfdy,
-        int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
-        const int *pairs, const int *reactions, const double *rates, hmca_nn nn
-        );
-
-Most of the parameters are as described above.
-
-    double n_pairs = param,  number of pairs to consider
-    double *pairs  = param,  array of 2*n_pairs indices
-    double *y      = input,  coverages of n_species_0+n_species_1 species and n_pairs pairs
-    double *dydt   = output, right hand sides of the kinetic equations
-    double *dfdy   = output, Jacobian of the kinetic equations
-    
-List the occupants of each pair - i.e. occupant 1, occupant 2, occupant 1, occupant 2, . . .
