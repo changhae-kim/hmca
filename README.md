@@ -2,7 +2,7 @@
 
 ## Overview
 
-This code defines a number of functions that give the right-hand sides and the Jacobians of the kinetic equations in various methods: MF, PA, HMF, HHPA, SHPA, MLMC, and SPA.
+This code defines a number of functions that give the right-hand sides and the Jacobians of the kinetic equations in various methods: mean-field (MF), pair-approximation (PA), heterogeneous mean-field (HMF), half heterogeneous pair approximation (HHPA), symmetric heterogeneous pair approximation (SHPA), machine learning moment closure (MLMC), and select pair approximation (SPA).
 
 ### Example
 
