@@ -44,9 +44,9 @@ There are pre-defined functions.
 
 If you want to write your own function, then note that the occupation pattern is provided as an input.
 
-    const int *indices = input, array of the two or three occupants, depending on the method
+    const int *indices = input, array of the two or three occupants depending on the method
 
-For SPA, `hmca_spa_func` and `hmca_spa_jac` set the third index to `-1` when trying to get the nearest neighbors of a site, and it is a non-negative integer index when trying to get the nearest neighbors of a pair.
+For SPA, the third index is `-1` when getting the nearest neighbors of a site, and it is a non-negative integer index when getting the nearest neighbors of a pair.
 
 ### Mean-Field Approximation
 
@@ -86,7 +86,8 @@ Most of the parameters are as described above.
 
 Most of the parameters are as described above.
 
-    double *y    = input,  coverages of n_species*(n_species+1)/2 pairs, n_species = n_species_0+n_species_1
+    double *y    = input,  coverages of n_species*(n_species+1)/2 pairs
+                   n_species = n_species_0+n_species_1
     double *dydt = output, right hand sides of the kinetic equations
     double *dfdy = output, Jacobian of the kinetic equations
     
@@ -156,9 +157,21 @@ and one that has a different definition.
 
 There are pre-defined functions to set `rates` and `weights` using typical distributions:
 
-    void hmca_lognorm_set ( . . . );
-    void hmca_logexp_set ( . . . );
-    void hmca_logsech_set ( . . . );
+    void hmca_lognorm_set (
+        const double *logk0, const double *dlogk,
+        double *rates, double *weights,
+        int n_unimol, int n_bimol, int mesh, double bound
+        );
+    void hmca_logexp_set (
+        const double *logk0, const double *dlogk,
+        double *rates, double *weights,
+        int n_unimol, int n_bimol, int mesh, double bound
+        );
+    void hmca_logsech_set (
+        const double *logk0, const double *dlogk,
+        double *rates, double *weights,
+        int n_unimol, int n_bimol, int mesh, double bound
+        );
     void hmca_logpoisson2_set (
         const double *logk0, const double *dlogk,
         double *rates, double *weights,
@@ -167,10 +180,10 @@ There are pre-defined functions to set `rates` and `weights` using typical distr
 
 Most of the parameters are as described above.
 
-    const double *logk0 = input,  array of the "zero-point" rate constants in log space
-                          - i.e. mu in log-normal distribution, or log(k_max) in log-Poission distribution
-    const double *dlogk = input,  array of the rate constant spreads in log space
-                          - i.e. sigma in log-normal distribution
+    const double *logk0 = input,  array of the "zero-point" rate constants in log space,
+                          i.e. mu in log-normal distribution, and log(k_max) in log-Poission distribution
+    const double *dlogk = input,  array of the rate constant spreads in log space,
+                          i.e. sigma in log-normal distribution
     double *rates       = output, array of the mesh*(n_unimol+n_bimol) rate constants
     double *weights     = output, array of the mesh weights
     double bound        = param,  number of standard deviations to scan
@@ -253,7 +266,8 @@ Most of the parameters are as described above.
 
 Most of the parameters are as described above.
 
-    double *y    = input,  coverages of mesh*n_species*n_species pairs, n_species = n_species_0+n_species_1
+    double *y    = input,  coverages of mesh*n_species*n_species pairs
+                   n_species = n_species_0+n_species_1
     double *dydt = output, right hand sides of the kinetic equations
     double *dfdy = output, Jacobian of the kinetic equations
 
@@ -276,7 +290,8 @@ Due to the broken symmetry, there are `n_species*n_species` distinct pairs per e
 
 Most of the parameters are as described above.
 
-    double *y    = input,  coverages of mesh*n_species*(n_species+1)/2 pairs, n_species = n_species_0+n_species_1
+    double *y    = input,  coverages of mesh*n_species*(n_species+1)/2 pairs
+                   n_species = n_species_0+n_species_1
     double *dydt = output, right hand sides of the kinetic equations
     double *dfdy = output, Jacobian of the kinetic equations
 
