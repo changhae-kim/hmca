@@ -22,12 +22,12 @@ There are some parameters that the functions require in common.
     double *rates   = param, array of the n_unimol+n_bimol rate constants
     hmca_nn nn      = param, function returning the number of nearest neighbors
 
-Two parameters are needed to give the number of species, because 2x1 or 2x2 lattices have two types of sites.
+Two parameters are needed to give the number of species, because 2x1 lattices have two types of sites.
 
 Assign each of the `n_species_0` species to an integer index between `0` and `n_species_0-1`,
 and each of the `n_species_1` species to an integer index between `n_species_0` and `n_species_0+n_species_1-1`.
 
-List the unimolecular reactions and then the bimolecular reactions - i.e. reactant, product, reactant, product, . . . reactant 1, reactant 2, product 1, product 2, . . .
+In `*reactions`, put the participant indices of the unimolecular reactions and then the bimolecular reactions - i.e. reactant, product, reactant, product, . . . reactant 1, reactant 2, product 1, product 2, . . .
 
 The number of nearest neighbors must be given as a function, because it can depend on the spatial arrangement of the sites in question.
 
@@ -41,6 +41,12 @@ There are pre-defined functions.
     double hmca_pa_nn_2x1 (const int *indices, int n_species_0);
     double hmca_spa_nn_1x1 (const int *indices, int n_species_0);
     double hmca_spa_nn_2x1 (const int *indices, int n_species_0);
+
+If you want to write your own function, then note that the occupation pattern is provided as an input.
+
+    const int *indices = input, array of the two or three occupants, depending on the method
+
+For SPA, `hmca_spa_func` and `hmca_spa_jac` set the third index to `-1` when trying to get the nearest neighbors of a site, and it is a non-negative integer index when trying to get the nearest neighbors of a pair.
 
 ### Example
 
@@ -93,7 +99,9 @@ There are pre-defined functions to set `rates` and `weights` using typical distr
 Most of the parameters are as described above.
 
     const double *logk0 = input,  array of the "zero-point" rate constants in log space
-    const double *dlogk = input,  array of the rate constant spreads in log space - i.e. sigma in log-normal distribution
+                          - i.e. mu in log-normal distribution, or log(k_max) in log-Poission distribution
+    const double *dlogk = input,  array of the rate constant spreads in log space
+                          - i.e. sigma in log-normal distribution
     double *rates       = output, array of the mesh*(n_unimol+n_bimol) rate constants
     double *weights     = output, array of the mesh weights
     double bound        = param,  number of standard deviations to scan
@@ -138,7 +146,9 @@ The code would look like:
         n_unimol, n_bimol, mesh, bound
         );
 
-## Mean-Field Approximation
+## Functions and Jacobians
+
+### Mean-Field Approximation
 
     void hmca_mf_func (
         const double *y,
@@ -159,7 +169,7 @@ Most of the parameters are as described above.
     double *dydt = output, right hand sides of the kinetic equations
     double *dfdy = output, Jacobian of the kinetic equations
 
-## Heterogeneous Mean-Field Approximation
+### Heterogeneous Mean-Field Approximation
 
     void hmca_hmf_func (
         const double *y,
@@ -180,7 +190,7 @@ Most of the parameters are as described above.
     double *dydt = output, right hand sides of the kinetic equations
     double *dfdy = output, Jacobian of the kinetic equations
 
-## Pair Approximation
+### Pair Approximation
 
     void hmca_pa_func (
         const double *y,
@@ -203,7 +213,7 @@ Most of the parameters are as described above.
     
 Due to the symmetry, there are only `n_species*(n_species+1)/2` distinct pairs.
 
-## Half Heterogeneous Pair Approximation
+### Half Heterogeneous Pair Approximation
 
     void hmca_hhpa_func (
         const double *y,
@@ -227,7 +237,7 @@ Most of the parameters are as described above.
 Due to the broken symmetry, there are `n_species*n_species` distinct pairs per each of the `mesh` points.
 
 
-## Symmetric Heterogeneous Pair Approximation
+### Symmetric Heterogeneous Pair Approximation
 
     void hmca_shpa_func (
         const double *y,
@@ -251,7 +261,7 @@ Most of the parameters are as described above.
 Due to the symmetry, there are `n_species*(n_species+1)/2` distinct pairs per each of the `mesh` points.
 
 
-## Select Pair Approximation
+### Select Pair Approximation
 
     void hmca_spa_func (
         const double *y,
