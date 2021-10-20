@@ -93,6 +93,8 @@ Most of the parameters are as described above.
     
 Due to the symmetry, there are only `n_species*(n_species+1)/2` distinct pairs.
 
+Order the pairs as 11, 12, 13, . . . 22, 23, . . .
+
 ### Select Pair Approximation
 
     void hmca_spa_func (
@@ -271,7 +273,7 @@ Most of the parameters are as described above.
     double *dydt = output, right hand sides of the kinetic equations
     double *dfdy = output, Jacobian of the kinetic equations
 
-Due to the broken symmetry, there are `n_species*n_species` distinct pairs per each of the `mesh` points.
+Due to the asymmetry, there are `n_species*n_species` distinct pairs per each of the `mesh` points.
 
 ### Symmetric Heterogeneous Pair Approximation
 
