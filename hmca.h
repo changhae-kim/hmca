@@ -8,7 +8,7 @@
 
 typedef double (*hmca_nn) (const int *indices, int n_species_0);
 
-typedef double (*hmca_mc) (const int *indices, const double *y, int n_species_0, int n_species_1, void *model);
+typedef double (*hmca_mc) (const int *indices, const double *y, int n_species_0, int n_species_1, void *params);
 
 
 // Shared Functions
@@ -235,7 +235,7 @@ void hmca_mlmc_func (
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		hmca_mc closure, hmca_mc deriv, void *model
+		hmca_mc closure, hmca_mc deriv, void *params
 		);
 
 void hmca_mlmc_jac (
@@ -243,7 +243,7 @@ void hmca_mlmc_jac (
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		hmca_mc closure, hmca_mc deriv, void *model
+		hmca_mc closure, hmca_mc deriv, void *params
 		);
 
 void hmca_mlmc_dfdz (
@@ -251,7 +251,7 @@ void hmca_mlmc_dfdz (
 		double *dfdz,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		hmca_mc closure, hmca_mc deriv, void *model
+		hmca_mc closure, hmca_mc deriv, void *params
 		);
 
 

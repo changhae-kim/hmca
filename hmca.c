@@ -1984,7 +1984,7 @@ void hmca_mlmc_func (
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		hmca_mc closure, hmca_mc deriv, void *model
+		hmca_mc closure, hmca_mc deriv, void *params
 		)
 {
 	int n_species = n_species_0+n_species_1;
@@ -2025,14 +2025,14 @@ void hmca_mlmc_func (
 			indices[0] = r1;
 			indices[1] = r0;
 			indices[2] = j;
-			ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, model);
+			ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
 			dydt[hmca_sym_id(r0, j, n_species)] -= ky;
 			dydt[hmca_sym_id(p0, j, n_species)] += ky;
 
 			indices[0] = r0;
 			indices[1] = r1;
 			indices[2] = j;
-			ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, model);
+			ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
 			dydt[hmca_sym_id(r1, j, n_species)] -= ky;
 			dydt[hmca_sym_id(p1, j, n_species)] += ky;
 		}
@@ -2049,7 +2049,7 @@ void hmca_mlmc_jac (
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		hmca_mc closure, hmca_mc deriv, void *model
+		hmca_mc closure, hmca_mc deriv, void *params
 		)
 {
 	int n_species = n_species_0+n_species_1;
@@ -2090,14 +2090,14 @@ void hmca_mlmc_jac (
 			indices[0] = r1;
 			indices[1] = r0;
 			indices[2] = j;
-			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, model);
+			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
 			for (k = 0; k < n_species; ++k)
 			{
 				indices[3] = k;
 				for (l = k; l < n_species; ++l)
 				{
 					indices[4] = l;
-					ky = rates[n_unimol+i] * (*deriv) (indices, y, n_species_0, n_species_1, model);
+					ky = rates[n_unimol+i] * (*deriv) (indices, y, n_species_0, n_species_1, params);
 					dfdy[nn_species * hmca_sym_id(r0, j, n_species) + hmca_sym_id(k, l, n_species)] -= ky;
 					dfdy[nn_species * hmca_sym_id(p0, j, n_species) + hmca_sym_id(k, l, n_species)] += ky;
 				}
@@ -2106,14 +2106,14 @@ void hmca_mlmc_jac (
 			indices[0] = r0;
 			indices[1] = r1;
 			indices[2] = j;
-			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, model);
+			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
 			for (k = 0; k < n_species; ++k)
 			{
 				indices[3] = k;
 				for (l = k; l < n_species; ++l)
 				{
 					indices[4] = l;
-					ky = rates[n_unimol+i] * (*deriv) (indices, y, n_species_0, n_species_1, model);
+					ky = rates[n_unimol+i] * (*deriv) (indices, y, n_species_0, n_species_1, params);
 					dfdy[nn_species * hmca_sym_id(r1, j, n_species) + hmca_sym_id(k, l, n_species)] -= ky;
 					dfdy[nn_species * hmca_sym_id(p1, j, n_species) + hmca_sym_id(k, l, n_species)] += ky;
 				}
@@ -2132,7 +2132,7 @@ void hmca_mlmc_dfdz (
 		double *dfdz,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates,
-		hmca_mc closure, hmca_mc deriv, void *model
+		hmca_mc closure, hmca_mc deriv, void *params
 		)
 {
 	int n_species = n_species_0+n_species_1;
@@ -2171,7 +2171,7 @@ void hmca_mlmc_dfdz (
 			// indices[1] = r0;
 			// indices[2] = j;
 			index = nn_species*r0+hmca_sym_id(r1, j, n_species);
-			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, model);
+			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
 			dfdz[nnn_species * hmca_sym_id(r0, j, n_species) + index] -= rates[n_unimol+i];
 			dfdz[nnn_species * hmca_sym_id(p0, j, n_species) + index] += rates[n_unimol+i];
 
@@ -2179,7 +2179,7 @@ void hmca_mlmc_dfdz (
 			// indices[1] = r1;
 			// indices[2] = j;
 			index = nn_species*r1+hmca_sym_id(r0, j, n_species);
-			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, model);
+			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
 			dfdz[nnn_species * hmca_sym_id(r1, j, n_species) + index] -= rates[n_unimol+i];
 			dfdz[nnn_species * hmca_sym_id(p1, j, n_species) + index] += rates[n_unimol+i];
 		}
