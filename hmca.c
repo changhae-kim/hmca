@@ -647,7 +647,7 @@ void hmca_hmf_dfdk (
 
 		int k, l, m;
 		int r0, r1, p0, p1;
-		int n, indices[3];
+		int indices[3];
 		double ky;
 
 		for (k = 0; k < n_species; ++k)
@@ -803,8 +803,8 @@ void hmca_pa_jac (
 
 	int i, j, k;
 	int r0, r1, p0, p1;
-	int n, indices[3];
-	double ky, y0, y1;
+	int indices[3];
+	double n, ky, y0, y1;
 
 	memset(dfdy, 0, nn_species*nn_species*sizeof(double));
 
@@ -1161,8 +1161,8 @@ void hmca_hhpa_jac (
 
 		int k, l, m;
 		int r0, r1, p0, p1;
-		int n, indices[3];
-		double ky, yi0, yi1, yj0, yj1;
+		int indices[3];
+		double n, ky, yi0, yi1, yj0, yj1;
 
 		for (k = 0; k < n_species*n_species; ++k)
 		{
@@ -1427,7 +1427,7 @@ void hmca_hhpa_dfdk (
 
 		int k, l, m;
 		int r0, r1, p0, p1;
-		int n, indices[3];
+		int indices[3];
 		double ky, yi0, yi1, yj0, yj1;
 
 		for (k = 0; k < n_species*n_species; ++k)
@@ -1661,7 +1661,7 @@ void hmca_shpa_func (
 
 		int k, l, m;
 		int r0, r1, p0, p1;
-		int n, indices[3];
+		int indices[3];
 		double ny, ky, _y0, _y1;
 
 		memset(fi, 0, nn_species*sizeof(double));
@@ -1776,8 +1776,8 @@ void hmca_shpa_jac (
 
 		int k, l, m;
 		int r0, r1, p0, p1;
-		int n, indices[3];
-		double ny, ky, _y0, _y1;
+		int indices[3];
+		double n, ny, ky, _y0, _y1;
 
 		for (k = 0; k < nn_species; ++k)
 		{
@@ -2057,7 +2057,7 @@ void hmca_mlmc_jac (
 
 	int i, j, k, l;
 	int r0, r1, p0, p1;
-	int n, indices[5];
+	int indices[5];
 	double ky;
 
 	memset(dfdy, 0, nn_species*nn_species*sizeof(double));
@@ -2392,8 +2392,8 @@ void hmca_spa_jac (
 
 	int i, j, k, l, p, q;
 	int r0, r1, p0, p1, s0, s1;
-	int n, indices[3];
-	double ky;
+	int indices[3];
+	double n, ky;
 
 	memset(dfdy, 0, n_dof*n_dof*sizeof(double));
 
