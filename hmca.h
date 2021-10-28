@@ -230,11 +230,15 @@ void hmca_shpa_dfdk (
 
 // Machine Learning Moment Closure
 
+#define hmca_mlmc_nn_1x1 hmca_pa_nn_1x1
+
+#define hmca_mlmc_nn_2x1 hmca_pa_nn_2x1
+
 void hmca_mlmc_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates,
+		const int *reactions, const double *rates, hmca_nn nn,
 		hmca_mc closure, hmca_mc deriv, void *params
 		);
 
@@ -242,7 +246,7 @@ void hmca_mlmc_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates,
+		const int *reactions, const double *rates, hmca_nn nn,
 		hmca_mc closure, hmca_mc deriv, void *params
 		);
 
@@ -250,7 +254,7 @@ void hmca_mlmc_dfdz (
 		const double *y,
 		double *dfdz,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates,
+		const int *reactions, const double *rates, hmca_nn nn,
 		hmca_mc closure, hmca_mc deriv, void *params
 		);
 

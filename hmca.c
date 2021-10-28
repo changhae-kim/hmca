@@ -1983,7 +1983,7 @@ void hmca_mlmc_func (
 		const double *y,
 		double *dydt,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates,
+		const int *reactions, const double *rates, hmca_nn nn,
 		hmca_mc closure, hmca_mc deriv, void *params
 		)
 {
@@ -2025,14 +2025,14 @@ void hmca_mlmc_func (
 			indices[0] = r1;
 			indices[1] = r0;
 			indices[2] = j;
-			ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
+			ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
 			dydt[hmca_sym_id(r0, j, n_species)] -= ky;
 			dydt[hmca_sym_id(p0, j, n_species)] += ky;
 
 			indices[0] = r0;
 			indices[1] = r1;
 			indices[2] = j;
-			ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
+			ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
 			dydt[hmca_sym_id(r1, j, n_species)] -= ky;
 			dydt[hmca_sym_id(p1, j, n_species)] += ky;
 		}
@@ -2048,7 +2048,7 @@ void hmca_mlmc_jac (
 		const double *y,
 		double *dfdy,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates,
+		const int *reactions, const double *rates, hmca_nn nn,
 		hmca_mc closure, hmca_mc deriv, void *params
 		)
 {
@@ -2058,7 +2058,7 @@ void hmca_mlmc_jac (
 	int i, j, k, l;
 	int r0, r1, p0, p1;
 	int indices[5];
-	double ky;
+	double n, ky;
 
 	memset(dfdy, 0, nn_species*nn_species*sizeof(double));
 
@@ -2090,14 +2090,15 @@ void hmca_mlmc_jac (
 			indices[0] = r1;
 			indices[1] = r0;
 			indices[2] = j;
-			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
+			n = (*nn) (indices, n_species_0);
+			// ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
 			for (k = 0; k < n_species; ++k)
 			{
 				indices[3] = k;
 				for (l = k; l < n_species; ++l)
 				{
 					indices[4] = l;
-					ky = rates[n_unimol+i] * (*deriv) (indices, y, n_species_0, n_species_1, params);
+					ky = n * rates[n_unimol+i] * (*deriv) (indices, y, n_species_0, n_species_1, params);
 					dfdy[nn_species * hmca_sym_id(r0, j, n_species) + hmca_sym_id(k, l, n_species)] -= ky;
 					dfdy[nn_species * hmca_sym_id(p0, j, n_species) + hmca_sym_id(k, l, n_species)] += ky;
 				}
@@ -2106,14 +2107,15 @@ void hmca_mlmc_jac (
 			indices[0] = r0;
 			indices[1] = r1;
 			indices[2] = j;
-			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
+			n = (*nn) (indices, n_species_0);
+			// ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
 			for (k = 0; k < n_species; ++k)
 			{
 				indices[3] = k;
 				for (l = k; l < n_species; ++l)
 				{
 					indices[4] = l;
-					ky = rates[n_unimol+i] * (*deriv) (indices, y, n_species_0, n_species_1, params);
+					ky = n * rates[n_unimol+i] * (*deriv) (indices, y, n_species_0, n_species_1, params);
 					dfdy[nn_species * hmca_sym_id(r1, j, n_species) + hmca_sym_id(k, l, n_species)] -= ky;
 					dfdy[nn_species * hmca_sym_id(p1, j, n_species) + hmca_sym_id(k, l, n_species)] += ky;
 				}
@@ -2131,7 +2133,7 @@ void hmca_mlmc_dfdz (
 		const double *y,
 		double *dfdz,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates,
+		const int *reactions, const double *rates, hmca_nn nn,
 		hmca_mc closure, hmca_mc deriv, void *params
 		)
 {
@@ -2141,7 +2143,7 @@ void hmca_mlmc_dfdz (
 
 	int i, j, k, l;
 	int r0, r1, p0, p1;
-	int index;
+	int index, indices[3];
 	double ky;
 
 	memset(dfdz, 0, nn_species*nnn_species*sizeof(double));
@@ -2167,21 +2169,23 @@ void hmca_mlmc_dfdz (
 
 		for (j = 0; j < n_species; ++j)
 		{
-			// indices[0] = r1;
-			// indices[1] = r0;
-			// indices[2] = j;
+			indices[0] = r1;
+			indices[1] = r0;
+			indices[2] = j;
 			index = nn_species*r0+hmca_sym_id(r1, j, n_species);
-			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
-			dfdz[nnn_species * hmca_sym_id(r0, j, n_species) + index] -= rates[n_unimol+i];
-			dfdz[nnn_species * hmca_sym_id(p0, j, n_species) + index] += rates[n_unimol+i];
+			// ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
+			ky = (*nn) (indices, n_species_0) * rates[n_unimol+i];
+			dfdz[nnn_species * hmca_sym_id(r0, j, n_species) + index] -= ky;
+			dfdz[nnn_species * hmca_sym_id(p0, j, n_species) + index] += ky;
 
-			// indices[0] = r0;
-			// indices[1] = r1;
-			// indices[2] = j;
+			indices[0] = r0;
+			indices[1] = r1;
+			indices[2] = j;
 			index = nn_species*r1+hmca_sym_id(r0, j, n_species);
-			// ky = rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
-			dfdz[nnn_species * hmca_sym_id(r1, j, n_species) + index] -= rates[n_unimol+i];
-			dfdz[nnn_species * hmca_sym_id(p1, j, n_species) + index] += rates[n_unimol+i];
+			// ky = (*nn) (indices, n_species_0) * rates[n_unimol+i] * (*closure) (indices, y, n_species_0, n_species_1, params);
+			ky = (*nn) (indices, n_species_0) * rates[n_unimol+i];
+			dfdz[nnn_species * hmca_sym_id(r1, j, n_species) + index] -= ky;
+			dfdz[nnn_species * hmca_sym_id(p1, j, n_species) + index] += ky;
 		}
 	}
 

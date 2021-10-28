@@ -101,8 +101,8 @@ int main (int argc, char* argv[])
 
 
 	// Function and Jacobian
-	hmca_mlmc_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
-	hmca_mlmc_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
+	hmca_mlmc_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure, deriv, NULL);
+	hmca_mlmc_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure, deriv, NULL);
 
 	printf("f =");
 	for (i = 0; i < nn_species; ++i)
@@ -124,9 +124,9 @@ int main (int argc, char* argv[])
 		if (y[i] > 0.0)
 		{
 			y[i] += h;
-			hmca_mlmc_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
+			hmca_mlmc_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure, deriv, NULL);
 			y[i] -= 2.0*h;
-			hmca_mlmc_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
+			hmca_mlmc_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure, deriv, NULL);
 			y[i] += h;
 			for(j = 0; j < nn_species; ++j)
 			{
@@ -137,9 +137,9 @@ int main (int argc, char* argv[])
 		else
 		{
 			y[i] += h;
-			hmca_mlmc_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
+			hmca_mlmc_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure, deriv, NULL);
 			y[i] -= h;
-			hmca_mlmc_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
+			hmca_mlmc_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure, deriv, NULL);
 			for(j = 0; j < nn_species; ++j)
 			{
 				aerr = (dydta[j]-dydtb[j])/h - dfdy[nn_species*j+i];
@@ -150,15 +150,15 @@ int main (int argc, char* argv[])
 	}
 
 	// Jacobian w.r.t. Closure
-	hmca_mlmc_dfdz(y, dfdz, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
+	hmca_mlmc_dfdz(y, dfdz, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure, deriv, NULL);
 
 	printf("dfdz_n - dfdz =\n");
 	for (i = 0; i < nnn_species; ++i)
 	{
 		data_Jz forward = {i, +h};
-		hmca_mlmc_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure_dz, deriv, &forward);
+		hmca_mlmc_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure_dz, deriv, &forward);
 		data_Jz backward = {i, -h};
-		hmca_mlmc_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure_dz, deriv, &backward);
+		hmca_mlmc_func(y, dydtb, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure_dz, deriv, &backward);
 		for(j = 0; j < nn_species; ++j)
 		{
 			aerr = (dydta[j]-dydtb[j])/(2.0*h) - dfdz[nnn_species*j+i];
@@ -170,10 +170,10 @@ int main (int argc, char* argv[])
 /*	// Timing
 	t0 = clock();
 	for (i = 0; i < 9.0e+4; ++i)
-		hmca_mlmc_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
+		hmca_mlmc_func(y, dydta, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure, deriv, NULL);
 	t1 = clock();
 	for (i = 0; i < 3.2e+3; ++i)
-		hmca_mlmc_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, closure, deriv, NULL);
+		hmca_mlmc_jac(y, dfdy, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure, deriv, NULL);
 	t2 = clock();
 	printf("%f\n", (double)(t1-t0)/CLOCKS_PER_SEC);
 	printf("%f\n", (double)(t2-t1)/CLOCKS_PER_SEC);	*/
@@ -206,7 +206,7 @@ double closure (const int *indices, const double *y, int n_species_0, int n_spec
 	for (a = 0; a < n_species; ++a)
 		yj += y[hmca_sym_id(indices[1], a, n_species)];
 
-	return (2 + ((indices[0] < n_species_0) != (indices[2] < n_species_0)) * 2) * y[ij]*y[jk]/(yj+(yj == 0.0));
+	return y[ij]*y[jk]/(yj+(yj == 0.0));
 }
 
 
@@ -226,11 +226,9 @@ double deriv (const int *indices, const double *y, int n_species_0, int n_specie
 	for (a = 0; a < n_species; ++a)
 		yj += y[hmca_sym_id(indices[1], a, n_species)];
 
-	return (2 + ((indices[0] < n_species_0) != (indices[2] < n_species_0)) * 2) * (
-			(lm == ij) * (y[jk]+(yj == 0.0 && lm == jk))/(yj+(yj == 0.0))
-			+ (lm == jk) * (y[ij]+(yj == 0.0 && lm == ij))/(yj+(yj == 0.0))
-			- (indices[1] == indices[3] || indices[1] == indices[4]) * (y[ij]*y[jk]+(yj == 0.0 && lm == ij && lm == jk))/(yj*yj+(yj == 0.0))
-			);
+	return (lm == ij) * (y[jk]+(yj == 0.0 && lm == jk))/(yj+(yj == 0.0))
+		+ (lm == jk) * (y[ij]+(yj == 0.0 && lm == ij))/(yj+(yj == 0.0))
+		- (indices[1] == indices[3] || indices[1] == indices[4]) * (y[ij]*y[jk]+(yj == 0.0 && lm == ij && lm == jk))/(yj*yj+(yj == 0.0));
 }
 
 
@@ -251,5 +249,5 @@ double closure_dz (const int *indices, const double *y, int n_species_0, int n_s
 	for (a = 0; a < n_species; ++a)
 		yj += y[hmca_sym_id(indices[1], a, n_species)];
 
-	return (2 + ((indices[0] < n_species_0) != (indices[2] < n_species_0)) * 2) * y[ij]*y[jk]/(yj+(yj == 0.0)) + (ijk == p->idz) * p->dz;
+	return y[ij]*y[jk]/(yj+(yj == 0.0)) + (ijk == p->idz) * p->dz;
 }
