@@ -63,7 +63,7 @@ For SPA, the third index is `-1` when getting the nearest neighbors of a site, a
         const int *reactions, const double *rates, hmca_nn nn
         );
 
-Most of the parameters are as described above.
+Most of the parameters are common parameters.
 
     double *y    = input,  coverages of n_species_0+n_species_1 species
     double *dydt = output, right hand sides of the kinetic equations
@@ -84,7 +84,7 @@ Most of the parameters are as described above.
         const int *reactions, const double *rates, hmca_nn nn
         );
 
-Most of the parameters are as described above.
+Most of the parameters are common parameters.
 
     double *y    = input,  coverages of n_species*(n_species+1)/2 pairs
                    n_species = n_species_0+n_species_1
@@ -110,7 +110,7 @@ Order the pairs as 11, 12, 13, . . . 22, 23, . . .
         const int *pairs, const int *reactions, const double *rates, hmca_nn nn
         );
 
-Most of the parameters are as described above.
+Most of the parameters are common parameters.
 
     double n_pairs = param,  number of pairs to consider
     double *pairs  = param,  array of 2*n_pairs indices
@@ -180,7 +180,7 @@ There are pre-defined functions to set `rates` and `weights` using typical distr
         int n_unimol, int n_bimol, int mesh, double bound
         );
 
-Most of the parameters are as described above.
+Most of the parameters are common parameters.
 
     const double *logk0 = input,  array of the "zero-point" rate constants in log space,
                           i.e. mu in log-normal distribution, and log(k_max) in log-Poission distribution
@@ -245,7 +245,7 @@ The code would look like:
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
         );
 
-Most of the parameters are as described above.
+Most of the parameters are common parameters.
 
     double *y    = input,  coverages of mesh*(n_species_0+n_species_1) species
     double *dydt = output, right hand sides of the kinetic equations
@@ -266,7 +266,7 @@ Most of the parameters are as described above.
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
         );
 
-Most of the parameters are as described above.
+Most of the parameters are common parameters.
 
     double *y    = input,  coverages of mesh*n_species*n_species pairs
                    n_species = n_species_0+n_species_1
@@ -290,7 +290,7 @@ Due to the asymmetry, there are `n_species*n_species` distinct pairs per each of
         const int *reactions, const double *rates, const double *weights, hmca_nn nn
         );
 
-Most of the parameters are as described above.
+Most of the parameters are common parameters.
 
     double *y    = input,  coverages of mesh*n_species*(n_species+1)/2 pairs
                    n_species = n_species_0+n_species_1
@@ -298,3 +298,33 @@ Most of the parameters are as described above.
     double *dfdy = output, Jacobian of the kinetic equations
 
 Due to the symmetry, there are `n_species*(n_species+1)/2` distinct pairs per each of the `mesh` points.
+
+## Machine Learning Moment Closure
+
+    void hmca_mlmc_func (
+        const double *y,
+        double *dydt,
+        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+        const int *reactions, const double *rates, hmca_nn nn,
+        hmca_mc closure, hmca_mc deriv, void *params
+        );
+    void hmca_mlmc_jac (
+        const double *y,
+        double *dfdy,
+        int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+        const int *reactions, const double *rates, hmca_nn nn,
+        hmca_mc closure, hmca_mc deriv, void *params
+        );
+
+Most of the parameters are common parameters.
+
+    hmca_mc closure = param, function returning the coverage of a given triple
+    hmca_mc deriv   = param, function returning the coverage of a given triple
+
+The moment closure is provided as a function that returns the coverage of a given triple.
+ 
+    typedef double (*hmca_mc) (const int *indices, const double *y, int n_species_0, int n_species_1, void *params);
+
+When evaluating the closure, 3 indices are used to indicate the triple.
+When evaluating the derivative, 3 indices are used to indicate the dependent variable (triple), and 2 more indices to indicate the independent variable (pair).
+
