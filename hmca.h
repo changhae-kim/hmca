@@ -89,6 +89,67 @@ void hmca_mf_dfdk (
 		);
 
 
+// Pair Approximation
+
+inline double hmca_pa_nn_1x1 (const int *indices, int n_species_0)
+{
+	return 3.0;
+}
+
+inline double hmca_pa_nn_2x1 (const int *indices, int n_species_0)
+{
+	return ((indices[0] < n_species_0) == (indices[2] < n_species_0)) ? (2.0) : (4.0);
+}
+
+void hmca_pa_func (
+		const double *y,
+		double *dydt,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+		const int *reactions, const double *rates, hmca_nn nn
+		);
+
+void hmca_pa_jac (
+		const double *y,
+		double *dfdy,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+		const int *reactions, const double *rates, hmca_nn nn
+		);
+
+void hmca_pa_dfdk (
+		const double *y,
+		double *dfdk,
+		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
+		const int *reactions, const double *rates, hmca_nn nn
+		);
+
+
+// Select Pair Approximation
+
+inline double hmca_spa_nn_1x1 (const int *indices, int n_species_0)
+{
+	return (indices[2] < 0) ? (4.0) : (3.0);
+}
+
+inline double hmca_spa_nn_2x1 (const int *indices, int n_species_0)
+{
+	return (indices[2] < 0) ? (4.0) : (((indices[0] < n_species_0) == (indices[2] < n_species_0)) ? (2.0) : (4.0));
+}
+
+void hmca_spa_func (
+		const double *y,
+		double *dydt,
+		int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
+		const int *pairs, const int *reactions, const double *rates, hmca_nn nn
+		);
+
+void hmca_spa_jac (
+		const double *y,
+		double *dfdy,
+		int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
+		const int *pairs, const int *reactions, const double *rates, hmca_nn nn
+		);
+
+
 // Heterogeneous Mean-Field Approximation
 
 #define hmca_hmf_nn_1x1 hmca_mf_nn_1x1
@@ -121,40 +182,6 @@ void hmca_hmf_dfdk (
 		double *dfdk,
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol, int mesh,
 		const int *reactions, const double *rates, const double *weights, hmca_nn nn
-		);
-
-
-// Pair Approximation
-
-inline double hmca_pa_nn_1x1 (const int *indices, int n_species_0)
-{
-	return 3.0;
-}
-
-inline double hmca_pa_nn_2x1 (const int *indices, int n_species_0)
-{
-	return ((indices[0] < n_species_0) == (indices[2] < n_species_0)) ? (2.0) : (4.0);
-}
-
-void hmca_pa_func (
-		const double *y,
-		double *dydt,
-		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn
-		);
-
-void hmca_pa_jac (
-		const double *y,
-		double *dfdy,
-		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn
-		);
-
-void hmca_pa_dfdk (
-		const double *y,
-		double *dfdk,
-		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
-		const int *reactions, const double *rates, hmca_nn nn
 		);
 
 
@@ -256,33 +283,6 @@ void hmca_mlmc_dfdz (
 		int n_species_0, int n_species_1, int n_unimol, int n_bimol,
 		const int *reactions, const double *rates, hmca_nn nn,
 		hmca_mc closure, hmca_mc deriv, void *params
-		);
-
-
-// Select Pair Approximation
-
-inline double hmca_spa_nn_1x1 (const int *indices, int n_species_0)
-{
-	return (indices[2] < 0) ? (4.0) : (3.0);
-}
-
-inline double hmca_spa_nn_2x1 (const int *indices, int n_species_0)
-{
-	return (indices[2] < 0) ? (4.0) : (((indices[0] < n_species_0) == (indices[2] < n_species_0)) ? (2.0) : (4.0));
-}
-
-void hmca_spa_func (
-		const double *y,
-		double *dydt,
-		int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
-		const int *pairs, const int *reactions, const double *rates, hmca_nn nn
-		);
-
-void hmca_spa_jac (
-		const double *y,
-		double *dfdy,
-		int n_species_0, int n_species_1, int n_pairs, int n_unimol, int n_bimol,
-		const int *pairs, const int *reactions, const double *rates, hmca_nn nn
 		);
 
 #endif
