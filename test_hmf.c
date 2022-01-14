@@ -76,7 +76,7 @@ int main (int argc, char* argv[])
 	srand(seed);
 	printf("seed = %ld\n", seed);
 
-/*	// Random Rate Constants
+	// Random Rate Constants
 	for (i = 0; i < mesh; ++i) for (j = 0; j < n_react; ++j)
 		rates[n_react*i+j] = (double)(rand()%p_kvar+1)/p_kvar;
 
@@ -95,9 +95,9 @@ int main (int argc, char* argv[])
 	printf("w =\n");
 	for (i = 0; i < mesh; ++i)
 		printf(" %+.2f", weights[i]);
-	printf("\n");	*/
+	printf("\n");
 
-	// Random Rate Constants (Known Distribution)
+/*	// Random Rate Constants (Known Distribution)
 	for (i = 0; i < n_react; ++i)
 	{
 		logk0[i] = log((double)(rand()%p_kvar+1)/p_kvar);
@@ -116,7 +116,7 @@ int main (int argc, char* argv[])
 	printf("w =\n");
 	for (i = 0; i < mesh; ++i)
 		printf(" %+.2f", weights[i]);
-	printf("\n");
+	printf("\n");	*/
 
 	// Random Moments
 	for (i = 0; i < mesh; ++i) for (j = 0; j < n_species; ++j)
