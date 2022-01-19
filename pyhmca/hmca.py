@@ -278,9 +278,9 @@ class spa:
                 dydt,
                 ctypes.c_int(self.n_species_0), ctypes.c_int(self.n_species_1), ctypes.c_int(self.n_pairs),
                 ctypes.c_int(self.n_unimol), ctypes.c_int(self.n_bimol),
-                (2*self.n_pairs*ctypes.c_int)(*pairs),
-                ((2*self.n_unimol+4*self.n_bimol)*ctypes.c_int)(*reactions),
-                ((self.n_unimol+self.n_bimol)*ctypes.c_double)(*rates),
+                (2*self.n_pairs*ctypes.c_int)(*self.pairs),
+                ((2*self.n_unimol+4*self.n_bimol)*ctypes.c_int)(*self.reactions),
+                ((self.n_unimol+self.n_bimol)*ctypes.c_double)(*self.rates),
                 ctypes_hmca_nn(self.nn)
                 )
         return numpy.array(dydt)
@@ -293,9 +293,9 @@ class spa:
                 dfdy,
                 ctypes.c_int(self.n_species_0), ctypes.c_int(self.n_species_1), ctypes.c_int(self.n_pairs),
                 ctypes.c_int(self.n_unimol), ctypes.c_int(self.n_bimol),
-                (2*self.n_pairs*ctypes.c_int)(*pairs),
-                ((2*self.n_unimol+4*self.n_bimol)*ctypes.c_int)(*reactions),
-                ((self.n_unimol+self.n_bimol)*ctypes.c_double)(*rates),
+                (2*self.n_pairs*ctypes.c_int)(*self.pairs),
+                ((2*self.n_unimol+4*self.n_bimol)*ctypes.c_int)(*self.reactions),
+                ((self.n_unimol+self.n_bimol)*ctypes.c_double)(*self.rates),
                 ctypes_hmca_nn(self.nn)
                 )
         return numpy.array(dfdy).reshape((self.n_vars, self.n_vars))
