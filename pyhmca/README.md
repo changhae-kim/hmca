@@ -1,6 +1,6 @@
 # PyHMCA
 
-This is a Python wrapper of the original HMCA code.
+This code is a Python wrapper of the original HMCA code.
 First, compile the C code as a shared library.
 
     gcc -fpic -shared -o libhmca.so hmca.c
