@@ -2,7 +2,11 @@
 
 ## Overview
 
-This code defines a number of functions that give the rates and the Jacobians of a user-input reaction mechanism in various methods: mean-field (MF), pair-approximation (PA), heterogeneous mean-field (HMF), half heterogeneous pair approximation (HHPA), symmetric heterogeneous pair approximation (SHPA), machine learning moment closure (MLMC), and select pair approximation (SPA).
+This C code defines a number of functions that compute the rates and the Jacobians of a user-input reaction mechanism in various methods: mean-field (MF), pair-approximation (PA), heterogeneous mean-field (HMF), half heterogeneous pair approximation (HHPA), symmetric heterogeneous pair approximation (SHPA), machine learning moment closure (MLMC), and select pair approximation (SPA).
+
+Again, the code only computes the right-hand side and the Jacobian.
+To use this code in a chemical kinetic simulation, you need to pick a suitable numerical integrator.
+We recommend the Backward Differentiation Formulas (BDFs) as implemented in GSL or CVODE.
 
 ### Example
 
