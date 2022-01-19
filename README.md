@@ -10,6 +10,8 @@ We recommend the Backward Differentiation Formulas (BDFs) as implemented in GSL 
 
 ### Example
 
+The examples `test_*.c` show how to define the system and call the functions to compute the rates and the Jacobians in the respective methods.
+
 To compile `test_pa.c`, run:
 
     gcc test_pa.c hmca.c -lm
