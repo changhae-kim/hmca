@@ -9,3 +9,5 @@ Keep a copy of `libhmca.so` and `hmca.py` in your working directory.
 Then, you can import the wrapper functions in `hmca.py` to your own script.
 
     import hmca
+
+For examples, see `test_*.py`.
