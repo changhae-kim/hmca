@@ -117,7 +117,7 @@ int main (int argc, char* argv[])
 		printf("\n");
 	}
 
-	// Compare to Numerical Jacobian
+/*	// Compare to Numerical Jacobian
 	printf("J_n - J =\n");
 	for (i = 0; i < nn_species; ++i)
 	{
@@ -147,9 +147,9 @@ int main (int argc, char* argv[])
 			}
 		}
 		printf("\n");
-	}
+	}	*/
 
-	// Jacobian w.r.t. Closure
+/*	// Jacobian w.r.t. Closure
 	hmca_mlmc_dfdz(y, dfdz, n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, hmca_mlmc_nn_2x1, closure, deriv, NULL);
 
 	printf("dfdz_n - dfdz =\n");
@@ -165,7 +165,7 @@ int main (int argc, char* argv[])
 			printf(" %+.6f", aerr);
 		}
 		printf("\n");
-	}
+	}	*/
 
 /*	// Timing
 	t0 = clock();

@@ -154,7 +154,7 @@ int main (int argc, char* argv[])
 		printf("\n");
 	}
 
-	// Compare to Numerical Jacobian
+/*	// Compare to Numerical Jacobian
 	printf("J_n - J =\n");
 	for (i = 0; i < mesh*n_species*n_species; ++i)
 	{
@@ -186,7 +186,7 @@ int main (int argc, char* argv[])
 
 		}
 		printf("\n");
-	}
+	}	*/
 
 /*	// Derivative w.r.t. Rate Constants
 	hmca_hhpa_dfdk(y, dfdk, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hhpa_nn_2x1);

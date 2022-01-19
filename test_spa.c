@@ -116,7 +116,7 @@ int main (int argc, char* argv[])
 		printf("\n");
 	}
 
-	// Compare to Numerical Jacobian
+/*	// Compare to Numerical Jacobian
 	printf("J - Jn =\n");
 	for (i = 0; i < n_dof; ++i)
 	{
@@ -146,10 +146,9 @@ int main (int argc, char* argv[])
 			}
 		}
 		printf("\n");
-	}
+	}	*/
 
-/*
-	// Timing
+/*	// Timing
 	t0 = clock();
 	for (i = 0; i < 1.2e+5; ++i)
 		hmca_spa_func(y, dydta, n_species_0, n_species_1, n_pairs, n_unimol, n_bimol, pairs, reactions, rates, hmca_spa_nn_2x1);
@@ -158,8 +157,7 @@ int main (int argc, char* argv[])
 		hmca_spa_jac(y, dfdy, n_species_0, n_species_1, n_pairs, n_unimol, n_bimol, pairs, reactions, rates, hmca_spa_nn_2x1);
 	t2 = clock();
 	printf("%f\n", (double)(t1-t0)/CLOCKS_PER_SEC);
-	printf("%f\n", (double)(t2-t1)/CLOCKS_PER_SEC);
-*/
+	printf("%f\n", (double)(t2-t1)/CLOCKS_PER_SEC);	*/
 
 
 	free(rates);

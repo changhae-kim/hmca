@@ -151,7 +151,7 @@ int main (int argc, char* argv[])
 		printf("\n");
 	}
 
-	// Compare to Numerica Jacobian
+/*	// Compare to Numerical Jacobian
 	printf("J_n - J =\n");
 	for (i = 0; i < mesh*n_species; ++i)
 	{
@@ -182,9 +182,9 @@ int main (int argc, char* argv[])
 
 		}
 		printf("\n");
-	}
+	}	*/
 
-	// Derivative w.r.t. Rate Constants
+/*	// Derivative w.r.t. Rate Constants
 	hmca_hmf_dfdk(y, dfdk, n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, hmca_hmf_nn_2x1);
 
 	printf("dfdk_n - dfdk =\n");
@@ -289,7 +289,7 @@ int main (int argc, char* argv[])
 			printf(" %+.6f", aerr);
 		}
 		printf("\n");
-	}
+	}	*/
 
 /*	// Timing
 	t0 = clock();
