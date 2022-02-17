@@ -56,8 +56,8 @@ If you employ this code in a publication, then please consider citing one or mor
     year = {2017},
     issn = {0009-2614},
     doi = {10.1016/j.cplett.2017.07.011},
-    URL = {https://www.sciencedirect.com/science/article/pii/S0009261417306814},
-    eprint = {https://www.sciencedirect.com/science/article/pii/S0009261417306814}
+    URL = {https://doi.org/10.1016/j.cplett.2017.07.011},
+    eprint = {https://doi.org/10.1016/j.cplett.2017.07.011}
     }
 
 ## Uniform Methods
