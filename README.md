@@ -376,7 +376,7 @@ Most of the parameters are common parameters. The method-specific parameters are
     hmca_mc deriv   = param, function returning the coverage of a triple
 
 The moment closure is provided as a function that returns the coverage of a triple.
-This is where you enter your custom moment closure.
+In other words, this is where you enter your custom moment closure.
  
     typedef double (*hmca_mc) (const int *indices, const double *y, int n_species_0, int n_species_1, void *params);
 
