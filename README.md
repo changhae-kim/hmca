@@ -31,9 +31,7 @@ HMF and HHPA:
     number = {4},
     pages = {1845-1856},
     year = {2022},
-    doi = {10.1021/acs.jpcc.1c09932},
-    URL = {https://doi.org/10.1021/acs.jpcc.1c09932},
-    eprint = {https://doi.org/10.1021/acs.jpcc.1c09932}
+    doi = {10.1021/acs.jpcc.1c09932}
     }
 
 MFSS/HMF:
@@ -46,10 +44,7 @@ MFSS/HMF:
     pages = {185-190},
     year = {2017},
     issn = {0009-2614},
-    doi = {10.1016/j.cplett.2017.07.011},
-    URL = {https://doi.org/10.1016/j.cplett.2017.07.011},
-    eprint = {https://doi.org/10.1016/j.cplett.2017.07.011}
-    }
+    doi = {10.1016/j.cplett.2017.07.011}    }
 
 MLMC:
 
@@ -61,9 +56,7 @@ MLMC:
     number = {14},
     pages = {144107},
     year = {2021},
-    doi = {10.1063/5.0065874},
-    URL = {https://doi.org/10.1063/5.0065874},
-    eprint = {https://doi.org/10.1063/5.0065874}
+    doi = {10.1063/5.0065874}
     }
 
 ## Uniform Methods
