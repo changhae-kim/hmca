@@ -372,10 +372,11 @@ Due to the symmetry, there are `n_species*(n_species+1)/2` distinct pairs per ea
 
 Most of the parameters are common parameters. The method-specific parameters are:
 
-    hmca_mc closure = param, function returning the coverage of a given triple
-    hmca_mc deriv   = param, function returning the coverage of a given triple
+    hmca_mc closure = param, function returning the coverage of a triple
+    hmca_mc deriv   = param, function returning the coverage of a triple
 
-The moment closure is provided as a function that returns the coverage of a given triple.
+The moment closure is provided as a function that returns the coverage of a triple.
+This is where you enter your custom moment closure.
  
     typedef double (*hmca_mc) (const int *indices, const double *y, int n_species_0, int n_species_1, void *params);
 
