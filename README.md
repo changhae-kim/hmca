@@ -21,6 +21,8 @@ To compile `test_pa.c`, run:
 Most of the methods in this code have been proposed in one of three publications.
 If you employ this code in a publication, then please consider citing one or more of the relevant articles.
 
+HMF and HHPA:
+
     @article{doi:10.1021/acs.jpcc.1c09932,
     author = {Kim, Changhae Andrew and Van Voorhis, Troy},
     title = {Heterogeneous Pair Approximation of Methanol Oxidation on TiO\textsubscript{2} Reveals Two Reaction Pathways},
@@ -34,18 +36,7 @@ If you employ this code in a publication, then please consider citing one or mor
     eprint = {https://doi.org/10.1021/acs.jpcc.1c09932}
     }
 
-    @article{doi:10.1063/5.0065874,
-    author = {Kim, Changhae Andrew and Ricke, Nathan D. and Van Voorhis, Troy},
-    title = {Machine learning dynamic correlation in chemical kinetics},
-    journal = {The Journal of Chemical Physics},
-    volume = {155},
-    number = {14},
-    pages = {144107},
-    year = {2021},
-    doi = {10.1063/5.0065874},
-    URL = {https://doi.org/10.1063/5.0065874},
-    eprint = {https://doi.org/10.1063/5.0065874}
-    }
+MFSS/HMF:
 
     @article{doi:10.1016/j.cplett.2017.07.011,
     author = {Geva, Nadav and Vaissier, Valerie and Shepherd, James and Van Voorhis, Troy},
@@ -58,6 +49,21 @@ If you employ this code in a publication, then please consider citing one or mor
     doi = {10.1016/j.cplett.2017.07.011},
     URL = {https://doi.org/10.1016/j.cplett.2017.07.011},
     eprint = {https://doi.org/10.1016/j.cplett.2017.07.011}
+    }
+
+MLMC:
+
+    @article{doi:10.1063/5.0065874,
+    author = {Kim, Changhae Andrew and Ricke, Nathan D. and Van Voorhis, Troy},
+    title = {Machine learning dynamic correlation in chemical kinetics},
+    journal = {The Journal of Chemical Physics},
+    volume = {155},
+    number = {14},
+    pages = {144107},
+    year = {2021},
+    doi = {10.1063/5.0065874},
+    URL = {https://doi.org/10.1063/5.0065874},
+    eprint = {https://doi.org/10.1063/5.0065874}
     }
 
 ## Uniform Methods
