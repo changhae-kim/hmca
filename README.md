@@ -16,7 +16,52 @@ To compile `test_pa.c`, run:
 
     gcc test_pa.c hmca.c -lm
 
-## Common Parameters
+### Citation
+
+Most of the methods in this code have been proposed in one of three publications.
+If you employ this code in a publication, then please consider citing one or more of the relevant articles.
+
+    @article{doi:10.1021/acs.jpcc.1c09932,
+    author = {Kim, Changhae Andrew and Van Voorhis, Troy},
+    title = {Heterogeneous Pair Approximation of Methanol Oxidation on TiO\textsubscript{2} Reveals Two Reaction Pathways},
+    journal = {The Journal of Physical Chemistry C},
+    volume = {126},
+    number = {4},
+    pages = {1845-1856},
+    year = {2022},
+    doi = {10.1021/acs.jpcc.1c09932},
+    URL = {https://doi.org/10.1021/acs.jpcc.1c09932},
+    eprint = {https://doi.org/10.1021/acs.jpcc.1c09932}
+    }
+
+    @article{doi:10.1063/5.0065874,
+    author = {Kim, Changhae Andrew and Ricke, Nathan D. and Van Voorhis, Troy},
+    title = {Machine learning dynamic correlation in chemical kinetics},
+    journal = {The Journal of Chemical Physics},
+    volume = {155},
+    number = {14},
+    pages = {144107},
+    year = {2021},
+    doi = {10.1063/5.0065874},
+    URL = {https://doi.org/10.1063/5.0065874},
+    eprint = {https://doi.org/10.1063/5.0065874}
+    }
+
+    @article{GEVA2017185,
+    author = {Geva, Nadav and Vaissier, Valerie and Shepherd, James and Van Voorhis, Troy},
+    title = {Mean field treatment of heterogeneous steady state kinetics},
+    journal = {Chemical Physics Letters},
+    volume = {685},
+    pages = {185-190},
+    year = {2017},
+    issn = {0009-2614},
+    doi = {https://doi.org/10.1016/j.cplett.2017.07.011},
+    url = {https://www.sciencedirect.com/science/article/pii/S0009261417306814},
+    }
+
+## Uniform Methods
+
+### Common Parameters
 
 There are some parameters that the functions require in common.
 
@@ -154,9 +199,11 @@ The code would look like:
         reactions, rates, hmca_mf_nn_1x1
         );
 
-## Common Parameters in Heterogeneous Methods
+## Heterogeneous Methods
 
-There are some more parameters that the heterogeneous methods require in common,
+### Common Parameters
+
+There are some parameters that the heterogeneous methods require in addition to the common parameters in the uniform methods,
 and one that has a different definition.
 
     int mesh        = param, number of points to sample in the rate constant space
