@@ -47,7 +47,7 @@ If you employ this code in a publication, then please consider citing one or mor
     eprint = {https://doi.org/10.1063/5.0065874}
     }
 
-    @article{GEVA2017185,
+    @article{doi:10.1016/j.cplett.2017.07.011,
     author = {Geva, Nadav and Vaissier, Valerie and Shepherd, James and Van Voorhis, Troy},
     title = {Mean field treatment of heterogeneous steady state kinetics},
     journal = {Chemical Physics Letters},
@@ -55,8 +55,9 @@ If you employ this code in a publication, then please consider citing one or mor
     pages = {185-190},
     year = {2017},
     issn = {0009-2614},
-    doi = {https://doi.org/10.1016/j.cplett.2017.07.011},
-    url = {https://www.sciencedirect.com/science/article/pii/S0009261417306814},
+    doi = {10.1016/j.cplett.2017.07.011},
+    URL = {https://www.sciencedirect.com/science/article/pii/S0009261417306814},
+    eprint = {https://www.sciencedirect.com/science/article/pii/S0009261417306814}
     }
 
 ## Uniform Methods
