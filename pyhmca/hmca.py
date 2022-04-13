@@ -572,8 +572,7 @@ class mlmc:
                 )
         return numpy.array(dfdy).reshape((self.nn_species, self.nn_species))
 
-
-def sample_closure (indices, y, n_species_0, n_species_1, params):
+def pa_closure (indices, y, n_species_0, n_species_1, params):
     global libhmca
     n_species = n_species_0+n_species_1
     nn_species = n_species*(n_species+1)//2
@@ -587,7 +586,7 @@ def sample_closure (indices, y, n_species_0, n_species_1, params):
         yj += y[libhmca.hmca_sym_id(indices[1], a, n_species)]
     return y[ij]*y[jk]/(yj+(yj == 0.0))
 
-def sample_deriv (indices, y, n_species_0, n_species_1, params):
+def pa_deriv (indices, y, n_species_0, n_species_1, params):
     global libhmca
     n_species = n_species_0+n_species_1
     nn_species = n_species*(n_species+1)//2
@@ -603,41 +602,4 @@ def sample_deriv (indices, y, n_species_0, n_species_1, params):
     return (lm == ij) * (y[jk]+(yj == 0.0 and lm == jk))/(yj+(yj == 0.0)) \
             + (lm == jk) * (y[ij]+(yj == 0.0 and lm == ij))/(yj+(yj == 0.0)) \
             - (indices[1] == indices[3] or indices[1] == indices[4]) * (y[ij]*y[jk]+(yj == 0.0 and lm == ij and lm == jk))/(yj*yj+(yj == 0.0))
-
-
-if __name__ == '__main__':
-
-    n_species_0 = 3
-    n_species_1 = 3
-    n_unimol = 4
-    n_bimol  = 18
-    reactions = [
-            0,1, 3,4, 1,0, 4,3,
-            0,0,2,2, 3,3,5,5, 3,0,5,2, 2,2,0,0, 5,5,3,3, 5,2,3,0,
-            1,0,0,1, 4,3,3,4, 1,3,0,4, 4,0,3,1,
-            2,0,0,2, 5,3,3,5, 2,3,0,5, 5,0,3,2,
-            1,2,0,0, 4,5,3,3, 1,5,0,3, 4,2,3,0,
-            ]
-    #n_pairs = 6
-    #pairs = [0,0, 0,1, 0,2, 0,3, 1,2, 2,2]
-    #mesh = 3
-
-    rates = [float(x) for x in '''
-            0.7 0.9 0.8 0.2 0.1 0.6 0.6 0.8 0.2 0.8 0.8 0.5 0.5 0.5 0.6 0.9 0.7 0.2 0.7 0.7 0.8 0.3
-            '''.split()]
-    #weights = [float(x) for x in '+1.00'.split()]
-    y = [float(x) for x in '''
-            0.00 0.33 0.00 0.61 0.30 0.00 0.93 0.19 0.90 0.00 0.21 0.21 0.00 0.09 0.02 0.30 0.44 0.00 0.97 0.25 0.34
-            '''.split()]
-
-    mymf = pa(n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, pa_nn_2x1)
-    #mymf = spa(n_species_0, n_species_1, n_pairs, n_unimol, n_bimol, pairs, reactions, rates, spa_nn_2x1)
-    #mymf = shpa(n_species_0, n_species_1, n_unimol, n_bimol, mesh, reactions, rates, weights, shpa_nn_2x1)
-    #mymf = mlmc(n_species_0, n_species_1, n_unimol, n_bimol, reactions, rates, pa_nn_2x1, sample_closure, sample_deriv)
-
-    dydt = mymf.func(y)
-    print(dydt)
-
-    dfdy = mymf.jac(y)
-    print(dfdy)
 
