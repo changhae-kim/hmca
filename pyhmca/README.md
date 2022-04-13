@@ -18,4 +18,7 @@ Like the C code, the Python wrapper only computes the right-hand side and the Ja
 To use this code in a chemical kinetic simulation, you need to pick a suitable numerical integrator.
 Fortunately, `scipy` has a Python wrapper of CVODE.
 
+
+## Uniform Methods
+
 More detailed explanations of the usage to be added . . .
