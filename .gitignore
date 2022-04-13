@@ -1,0 +1,5 @@
+a.out
+pyhmca/__pycache__
+pyhmca/hmca.c
+pyhmca/hmca.h
+pyhmca/libhmca.so
