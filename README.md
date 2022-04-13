@@ -19,7 +19,7 @@ To compile `test_pa.c`, run:
 ### Citation
 
 Most of the methods in this code have been proposed in one of three publications.
-If you employ this code in a publication, then please consider citing one or more of the relevant articles.
+If you employ this code in a publication, then please cite one or more of the relevant articles.
 
 HMF and HHPA:
 
