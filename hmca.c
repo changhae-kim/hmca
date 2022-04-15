@@ -183,15 +183,17 @@ void hmca_logsech_set (
 	int i, j;
 	double x, dx;
 
+	/*
 	// midpoint rule
-//	dx = 2.0 * bound / (mesh + (mesh == 0));
-//	for (i = 0; i < mesh; ++i)
-//	{
-//		x = (i+0.5)*dx-bound;
-//		for (j = 0; j < n_react; ++j)
-//			rates[n_react*i+j] = exp(logk[j]+x*dlogk[j]);
-//		weights[i] = (2.0/M_PI) / (exp(+x)+exp(-x)) * dx;
-//	}
+	dx = 2.0 * bound / (mesh + (mesh == 0));
+	for (i = 0; i < mesh; ++i)
+	{
+		x = (i+0.5)*dx-bound;
+		for (j = 0; j < n_react; ++j)
+			rates[n_react*i+j] = exp(logk[j]+x*dlogk[j]);
+		weights[i] = (2.0/M_PI) / (exp(+x)+exp(-x)) * dx;
+	}
+	*/
 
 	// trapezoid rule
 	dx = 2.0 * bound / (mesh-1 + (mesh == 1));
@@ -223,15 +225,17 @@ void hmca_logpoisson2_set (
 	int i, j;
 	double x, dx;
 
+	/*
 	// midpoint rule
-//	dx = bound / (mesh + (mesh == 0));
-//	for (i = 0; i < mesh; ++i)
-//	{
-//		x = (i+0.5)*dx;
-//		for (j = 0; j < n_react; ++j)
-//			rates[n_react*i+j] = exp(logk[j]-x*dlogk[j]);
-//		weights[i] = x * x * exp(-x) * dx;
-//	}
+	dx = bound / (mesh + (mesh == 0));
+	for (i = 0; i < mesh; ++i)
+	{
+		x = (i+0.5)*dx;
+		for (j = 0; j < n_react; ++j)
+			rates[n_react*i+j] = exp(logk[j]-x*dlogk[j]);
+		weights[i] = x * x * exp(-x) * dx;
+	}
+	*/
 
 	// Simpson's rule
 	dx = bound / (mesh-1 + (mesh == 1));
